@@ -1,1 +1,4 @@
 /AcPluginTest/*.suo
+/output/Debug
+/AcPluginTest/obj/Debug
+/AcCommandTest/obj/Debug
