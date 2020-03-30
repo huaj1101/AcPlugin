@@ -2,3 +2,6 @@
 /output/Debug
 /AcPluginTest/obj/Debug
 /AcCommandTest/obj/Debug
+/AcCommandTest/obj/Release
+/AcPluginTest/obj/Release
+/output/Release
