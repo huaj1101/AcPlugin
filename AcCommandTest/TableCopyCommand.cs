@@ -41,7 +41,18 @@ namespace AcCommandTest
                     }
                     SelectionSet sset = psr.Value;
                     AcTable table = AcTableParser.ParseTable(sset);
-                    editor.WriteMessage(table.ToString());
+
+                    ConsoleTableOptions options = new ConsoleTableOptions();
+                    ConsoleTable consoleTable = new ConsoleTable(options);
+                    if (table.HasHeader)
+                    {
+                        consoleTable.AddColumn(table.Header);
+                    }
+                    for (int i = 0; i < table.DataRowCount; i++)
+                    {
+                        consoleTable.AddRow(table.Data[i]);
+                    }
+                    editor.WriteMessage("\n" + consoleTable.ToString());
                     trans.Commit();
                 }
             }

@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AcCommandTest</RootNamespace>
     <AssemblyName>AcCommandTest</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -75,7 +76,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AcTable.cs" />
+    <Compile Include="AcTableParseException.cs" />
     <Compile Include="AcTableParser.cs" />
+    <Compile Include="ConsoleTables.cs" />
     <Compile Include="DrawCircleCommand.cs" />
     <Compile Include="TableCopyCommand.cs" />
     <Compile Include="PickFirstCommand.cs" />

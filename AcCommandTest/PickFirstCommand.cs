@@ -40,7 +40,7 @@ namespace AcCommandTest
                         return;
                     }
                     SelectionSet sset = psr.Value;
-                    editor.WriteMessage("选中{0:d}对象：{1:s}\n", sset.Count, sset[0].ObjectId.ObjectClass.DxfName);
+                    editor.WriteMessage("选中{0:d}对象，第一个类型为{1:s}\n", sset.Count, sset[0].ObjectId.ObjectClass.DxfName);
                     StringBuilder sb = new StringBuilder();
                     foreach (SelectedObject so in sset)
                     {
@@ -48,13 +48,13 @@ namespace AcCommandTest
                         {
                             DBText text = (DBText)so.ObjectId.GetObject(OpenMode.ForRead);
                             sb.Append(text.TextString);
-                            sb.Append(text.Position.ToString());
+                            //sb.Append(text.Position.ToString());
                         }
                         else if (so.ObjectId.ObjectClass.DxfName == "MTEXT")
                         {
                             MText text = (MText)so.ObjectId.GetObject(OpenMode.ForRead);
-                            sb.Append(text.Contents);
-                            sb.Append(text.Location.ToString());
+                            sb.Append(text.Text);
+                            //sb.Append(text.Location.ToString());
                         }
                         else if (so.ObjectId.ObjectClass.DxfName == "LINE")
                         {
