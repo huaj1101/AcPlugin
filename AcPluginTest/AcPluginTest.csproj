@@ -68,6 +68,14 @@
       <HintPath>..\aclib\AdWindows.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Autodesk.AutoCAD.Interop">
+      <HintPath>..\aclib\Autodesk.AutoCAD.Interop.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Autodesk.AutoCAD.Interop.Common">
+      <HintPath>..\aclib\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />

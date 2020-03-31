@@ -1,7 +1,9 @@
 ﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Interop;
 using Autodesk.AutoCAD.Runtime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -50,5 +52,52 @@ namespace AcPluginTest
             Editor editor = Application.DocumentManager.MdiActiveDocument.Editor;
             editor.WriteMessage("加载AcCommandTest.dll");
         }
+
+        /// <summary>
+        /// 使用新菜单
+        /// </summary>
+        [CommandMethod("nm")]
+        public void AssertNewMenu()
+        {
+            IAcadPreferences acadPreferences = (IAcadPreferences)Application.Preferences ;
+            IAcadApplication acadApplication = (IAcadApplication)Application.AcadApplication;
+            
+            //acadApplication.Name;
+            string profilesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+                "Autodesk/AutoCAD 2014/R19.1/chs/Support/Profiles");
+            const string newMenuName = "NEW_MENU_TEST__";
+            string newProfile = Path.Combine(profilesDir, newMenuName);
+
+            object profileNames;
+            acadPreferences.Profiles.GetAllProfileNames(out profileNames);
+            IList profileNameList = (IList)profileNames;
+            if (!profileNameList.Contains(newMenuName))
+            {
+                acadPreferences.Profiles.CopyProfile(acadPreferences.Profiles.ActiveProfile, newMenuName);
+            }
+
+            if (!Directory.Exists(newProfile))
+            {
+                Directory.CreateDirectory(newProfile);
+            }
+
+            File.Copy(Path.Combine(AssemblyDirectory, "Profile.aws"), Path.Combine(newProfile, "Profile.aws"),true);
+            acadPreferences.Profiles.ActiveProfile = newMenuName;
+            acadApplication.Quit();
+        }
+
+        /// <summary>
+        /// 重置为老菜单
+        /// </summary>
+        [CommandMethod("om")]
+        public void RevertOldMenu()
+        {
+            IAcadPreferences acadPreferences = (IAcadPreferences)Application.Preferences;
+            object profileNames;
+            acadPreferences.Profiles.GetAllProfileNames(out profileNames);
+            IList profileNameList = (IList)profileNames;
+            acadPreferences.Profiles.ResetProfile(profileNameList[0] as string);
+        }
     }
+
 }
