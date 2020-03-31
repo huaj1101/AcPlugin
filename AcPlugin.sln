@@ -5,7 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcPluginTest", "AcPluginTes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcCommandTest", "AcCommandTest\AcCommandTest.csproj", "{151BA15C-5E60-4A29-AD5F-A3B8CD809B65}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "acCustomUI", "AcCustomUI\acCustomUI.csproj", "{6247A9AE-9E2E-43A1-B7D8-3845FFCCF49C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcCustomUI", "AcCustomUI\AcCustomUI.csproj", "{6247A9AE-9E2E-43A1-B7D8-3845FFCCF49C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
