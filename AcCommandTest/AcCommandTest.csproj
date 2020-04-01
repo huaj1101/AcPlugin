@@ -80,6 +80,7 @@
     <Compile Include="AcTableParseException.cs" />
     <Compile Include="AcTableParser.cs" />
     <Compile Include="ConsoleTables.cs" />
+    <Compile Include="FontCommand.cs" />
     <Compile Include="DrawCircleCommand.cs" />
     <Compile Include="TableCopyCommand.cs" />
     <Compile Include="PickFirstCommand.cs" />
