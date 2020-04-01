@@ -28,6 +28,11 @@ using RibbonControl = Autodesk.Windows.RibbonControl;
 using RibbonPanelSource = Autodesk.Windows.RibbonPanelSource;
 using UserControl = System.Windows.Controls.UserControl;
 using System.Reflection;
+using Autodesk.AutoCAD.Windows.ToolPalette;
+using Autodesk.Internal.InfoCenter;
+using Autodesk.Private.InfoCenter;
+using Visibility = System.Windows.Visibility;
+using Window = Autodesk.AutoCAD.Windows.Window;
 
 // This line is not mandatory, but improves loading performances
 [assembly: CommandClass(typeof(AutoCAD_CSharp_plug_in_acCustomUI.MyCommands))]
@@ -236,6 +241,14 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         [CommandMethod("ZsyRibbonTab")]
         public static void ZsyRibbonTab()
         {
+            // 在AutoCAD的Ribbon窗口中显示
+            if (RibbonServices.RibbonPaletteSet == null)
+            {
+                Commands.Ribbon();
+            }
+
+            RibbonControl ribCntrl = RibbonServices.RibbonPaletteSet.RibbonControl;
+
             // 创建Ribbon Tab页
             if (myRibbonTab == null)
             {
@@ -269,8 +282,6 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                 panel2Src.Items.Add(rbnBtnTest3);
             }
 
-            // 在AutoCAD的Ribbon窗口中显示
-            RibbonControl ribCntrl = RibbonServices.RibbonPaletteSet.RibbonControl;
             bool isShow = false;
             foreach (RibbonTab rbnTab in ribCntrl.Tabs)
             {
@@ -365,47 +376,54 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
        private static void MenuItem_1_Click(object sender, System.EventArgs e)
         {
             CircleCommandHandler.ZsyNewCircle();
-            //Document doc = Application.DocumentManager.MdiActiveDocument;
-            //Database db = HostApplicationServices.WorkingDatabase;
-            //Editor ed = doc.Editor;
-
-            //using (Transaction trans = db.TransactionManager.StartTransaction())
-            //{
-            //    PromptPointOptions pointOpts,otherOpts;
-            //    PromptPointResult pointResult,otherResult;
-            //    Point3d firstPnt = new Point3d();
-            //    Point3d OtherPnt = new Point3d();
-            //    Line tLine;
-
-            //    pointOpts = new PromptPointOptions("please select a point: ");
-            //    pointResult = ed.GetPoint(pointOpts);
-            //    if (pointResult.Status == PromptStatus.OK)
-            //        firstPnt = pointResult.Value;
-
-            //    otherOpts = new PromptPointOptions("\n select other point: ");
-            //    otherResult = ed.GetPoint(otherOpts);
-            //    if (otherResult.Status == PromptStatus.OK)
-            //        OtherPnt = otherResult.Value;
-
-            //    try
-            //    {
-            //        //得到当前数据库块表
-            //        BlockTable bt = (BlockTable)(trans.GetObject(db.BlockTableId, OpenMode.ForRead));
-            //        BlockTableRecord btr = (BlockTableRecord)trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
-            //        tLine = new Line(firstPnt, OtherPnt);
-            //        //往数据库中添加实体
-            //        btr.AppendEntity(tLine);
-            //        trans.AddNewlyCreatedDBObject(tLine, true);
-            //        trans.Commit();
-            //    }
-            //    catch(Autodesk.AutoCAD.Runtime.Exception g)
-            //    {
-            //        Application.ShowAlertDialog(g.Message);
-            //        trans.Abort();
-            //    }
-            //}
         }
-        
+
+
+       [CommandMethod("ZsyCloseFileTabOnTop")]
+       public static void ZsyCloseFileTabOnTop()
+       {
+           Commands.CloseFileTab();
+       }
+
+       [CommandMethod("ZsyCloseRibbon")]
+       public static void ZsyCloseRibbon()
+       {
+           if (RibbonServices.RibbonPaletteSet != null)
+           {
+               Commands.RibbonClose();
+           }
+       }
+
+        //修改当前工作空间:草图与注释
+        [CommandMethod("ZsyWorkspace")]
+       public static void ZsyWorkspace()
+       {
+            //"WS_Anno2DDraft"  "草图与注释"
+            //"WS_3DModeling   "三维建模"
+            //"WS_SM_0001"     "三维基础"
+            //"WS_AcadClassic" "AutoCAD 经典"
+
+            string curCuiFileName = Application.GetSystemVariable("MENUNAME").ToString() + ".cuix";
+            CustomizationSection curCui = new CustomizationSection(curCuiFileName);
+
+            
+            string wsCurrentName = (string)Application.GetSystemVariable("WSCURRENT");
+
+            foreach (Workspace curCuiWorkspace in curCui.Workspaces)
+            {
+                if ("WS_Anno2DDraft".Equals(curCuiWorkspace.ElementID) && !curCuiWorkspace.Name.Equals(wsCurrentName)) //
+                {
+                    Application.SetCurrentWorkspace(curCuiWorkspace.Name);
+                    return;
+                }
+            }
+        }
+
+       [CommandMethod("ZsyPaletteSetClose")]
+       public static void ZsyPaletteSetClose()
+       {
+          
+       }
     }
 
 }
