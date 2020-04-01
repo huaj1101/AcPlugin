@@ -6,7 +6,6 @@ using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.EditorInput;
-using System.Windows.Forms;
 
 // This line is not mandatory, but improves loading performances
 [assembly: ExtensionApplication(typeof(AutoCAD_CSharp_plug_in_acCustomUI.MyPlugin))]
@@ -43,6 +42,8 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
 
             ////MessageBox.Show("插件已加载");
             ///
+            Editor editor = Application.DocumentManager.MdiActiveDocument.Editor;
+            editor.WriteMessage("MyPlugin插件初始化");
 
             //TODO 处理工作区的 tab - 应不可关闭
 

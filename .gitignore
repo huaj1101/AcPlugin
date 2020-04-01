@@ -6,3 +6,6 @@
 /AcPluginTest/obj/Release
 /output/Release
 /*.suo
+/.vs/AcPlugin/v16/*.suo
+/AcPluginTest/*.user
+/acCustomUI/obj/Release
