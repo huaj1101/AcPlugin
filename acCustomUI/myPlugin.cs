@@ -47,7 +47,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             //TODO 处理工作区的 tab - 应不可关闭
 
             //TODO 处理左上角图标和主菜单
-            MyCommands.ZsyMainMenu();
+            //MyCommands.ZsyMainMenu();
 
             //隐藏AutoCAD自带 toolbar，添加自定义toolbar
             MyCommands.ZsyToolbar();
