@@ -17,11 +17,16 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
     {
         static Autodesk.AutoCAD.EditorInput.Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
 
-        [CommandMethod("Addselectchang")]
-        public static void AddDocEvent()
+        [CommandMethod("AddSelectChangeEvent")]
+        public static void AddSelectChangeEvent()
         {
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            acDoc.ImpliedSelectionChanged += new EventHandler(doc_ImpliedSelectionChanged);
+            foreach (var o in Application.DocumentManager)
+            {
+                Document doc = o as Document;
+                doc.ImpliedSelectionChanged += new EventHandler(doc_ImpliedSelectionChanged);
+            }
+            //Document acDoc = Application.DocumentManager.MdiActiveDocument;
+            //acDoc.ImpliedSelectionChanged += new EventHandler(doc_ImpliedSelectionChanged);
         }
 
         [CommandMethod("Removeselectchang")]
