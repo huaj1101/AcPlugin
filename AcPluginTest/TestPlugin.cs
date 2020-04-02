@@ -1,4 +1,5 @@
-﻿using Autodesk.AutoCAD.ApplicationServices;
+﻿using AcCommandTest;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Interop;
 using Autodesk.AutoCAD.Runtime;
@@ -21,7 +22,26 @@ namespace AcPluginTest
         public void Initialize()
         {
             Editor editor = Application.DocumentManager.MdiActiveDocument.Editor;
-            editor.WriteMessage("AcPluginTest插件初始化");
+            editor.WriteMessage("AcPluginTest插件初始化\r\n");
+            CommandLoader loader = new CommandLoader();
+            loader.LoadCommands();
+
+            //处理字体
+            foreach (Document doc in Application.DocumentManager)
+            {
+                FontUtils.ProcessFont(doc);
+            }
+            //注册事件
+            Application.DocumentManager.DocumentCreated += DocumentManager_DocumentCreated;
+
+            editor.WriteMessage("FontCommand Init\r\n");
+
+        }
+
+
+        void DocumentManager_DocumentCreated(object sender, DocumentCollectionEventArgs e)
+        {
+            FontUtils.ProcessFont(e.Document);
         }
 
         public void Terminate()

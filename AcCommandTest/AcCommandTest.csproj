@@ -76,16 +76,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AcTable.cs" />
-    <Compile Include="AcTableParseException.cs" />
-    <Compile Include="AcTableParser.cs" />
-    <Compile Include="ConsoleTables.cs" />
+    <Compile Include="EnumEntitiesCommand.cs" />
+    <Compile Include="FontUtils.cs" />
+    <Compile Include="TableParse\AcTable.cs" />
+    <Compile Include="TableParse\AcTableParseException.cs" />
+    <Compile Include="TableParse\AcTableParser.cs" />
+    <Compile Include="TableParse\ConsoleTables.cs" />
     <Compile Include="FontCommand.cs" />
     <Compile Include="DrawCircleCommand.cs" />
     <Compile Include="TableCopyCommand.cs" />
-    <Compile Include="PickFirstCommand.cs" />
+    <Compile Include="ShowPickCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HelloWorldCommand.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="Fonts\%40mc_bigfont.shx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fonts\%40mc_symbol.shx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

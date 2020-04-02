@@ -8,20 +8,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-[assembly: CommandClass(typeof(AcCommandTest.PickFirstCommand))]
+[assembly: CommandClass(typeof(AcCommandTest.ShowPickCommand))]
 
 namespace AcCommandTest
 {
-    public class PickFirstCommand
+    public class ShowPickCommand
     {
-        public PickFirstCommand()
+        public ShowPickCommand()
         {
             Editor editor = Application.DocumentManager.MdiActiveDocument.Editor;
-            editor.WriteMessage("PickFirstCommand Init\r\n");
+            editor.WriteMessage("ShowPickCommand Init\r\n");
         }
 
-        [CommandMethod("pickfirst", CommandFlags.UsePickSet)]
-        public void PickFirst()
+        [CommandMethod("sp", CommandFlags.UsePickSet)]
+        public void ShowPick()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
