@@ -52,7 +52,7 @@ namespace AcCommandTest
                 throw new Exception("Please set the columns first");
 
             if (Columns.Count != values.Length)
-                throw new Exception("The number columns in the row ({Columns.Count}) does not match the values ({values.Length}");
+                throw new Exception(string.Format("The number columns in the row ({0:d}) does not match the values ({1:d}", Columns.Count, values.Length));
 
             Rows.Add(values);
             return this;

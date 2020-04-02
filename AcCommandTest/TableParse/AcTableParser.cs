@@ -2,6 +2,7 @@
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -200,12 +201,10 @@ namespace AcCommandTest
             }
         }
 
-        private static readonly string[] C_Footer_Text = { "合计", "总计" };
         private List<Text> _texts = new List<Text>();
         private List<TableLine> _tableHLines = new List<TableLine>();
         private List<TableLine> _tableVLines = new List<TableLine>();
         private TableCell[,] _cells;
-        private int _headerRowCount = 1;
         private int _rowCount;
         private int _colCount;
 
@@ -214,7 +213,7 @@ namespace AcCommandTest
         /// </summary>
         /// <param name="objects"></param>
         /// <returns></returns>
-        public static AcTable ParseTable(SelectionSet objects)
+        public static AcTable ParseTable(IEnumerable objects)
         {
             return new AcTableParser().Parse(objects);
         }
@@ -224,9 +223,9 @@ namespace AcCommandTest
         /// </summary>
         /// <param name="objects"></param>
         /// <returns></returns>
-        private AcTable Parse(SelectionSet objects)
+        private AcTable Parse(IEnumerable objects)
         {
-            ParseSelectedObjects(objects);
+            ParseObjects(objects);
             BuildCells();
             PutTextToCells();
             CalcCellsValue();
@@ -240,73 +239,19 @@ namespace AcCommandTest
         private AcTable GenerateResult()
         {
             AcTable table = new AcTable();
-            table.ColCount = _colCount;
-            //Header
-            table.HasHeader = _headerRowCount > 0;
-            if (table.HasHeader)
-            {
-                table.Header = new string[_colCount];
-                for (int i = 0; i < _colCount; i++)
-                {
-                    table.Header[i] = _cells[_headerRowCount - 1, i].MergedCellValue;
-                }
-            }
-            //EmptyJudge
-            List<bool> rowsEmpty = new List<bool>();
+            table.Cells = new AcTableCell[_rowCount][];
             for (int i = 0; i < _rowCount; i++)
             {
-                rowsEmpty.Add(IsRowEmpty(i));
-            }
-            //Footer
-            table.HasFooter = false;
-            if (!rowsEmpty.Last())
-            {
-                if (rowsEmpty[_rowCount - 2])
+                table.Cells[i] = new AcTableCell[_colCount];
+                for (int j = 0; j < _colCount; j++)
                 {
-                    table.HasFooter = true;
-                }
-                else
-                {
-                    string bottomLeftCellValue = _cells[_rowCount - 1, 0].CellValue.Replace(" ", "");
-                    foreach (string s in C_Footer_Text)
-                    {
-                        if (bottomLeftCellValue.Contains(s))
-                        {
-                            table.HasFooter = true;
-                            break;
-                        }
-                    }
-                }
-                if (table.HasFooter)
-                {
-                    table.Footer = new string[_colCount];
-                    for (int i = 0; i < _colCount; i++)
-                    {
-                        table.Footer[i] = _cells[_rowCount - 1, i].CellValue;
-                    }
+                    table.Cells[i][j] = new AcTableCell();
+                    table.Cells[i][j].Row = i;
+                    table.Cells[i][j].Col = j;
+                    table.Cells[i][j].Value = _cells[i, j].CellValue;
                 }
             }
-            //Data
-            int footerRowCount = table.HasFooter ? 1 : 0;
-            List<string[]> data = new List<string[]>();
-            for (int i = _headerRowCount; i < _rowCount - footerRowCount; i++)
-            {
-                if (!rowsEmpty[i])
-                {
-                    string[] rowData = new string[_colCount];
-                    for (int j = 0; j < _colCount; j++)
-                    {
-                        rowData[j] = _cells[i, j].CellValue;
-                    }
-                    data.Add(rowData);
-                }
-            }
-            table.DataRowCount = data.Count;
-            table.Data = new string[data.Count][];
-            for (int i = 0; i < data.Count; i++)
-            {
-                table.Data[i] = data[i];
-            }
+
             return table;
         }
 
@@ -375,22 +320,22 @@ namespace AcCommandTest
         /// 识别选中的对象，将其变为内部结构
         /// </summary>
         /// <param name="objects"></param>
-        private void ParseSelectedObjects(SelectionSet objects)
+        private void ParseObjects(IEnumerable objects)
         {
-            foreach (SelectedObject so in objects)
+            foreach (ObjectId oid in objects)
             {
-                switch (so.ObjectId.ObjectClass.DxfName)
+                switch (oid.ObjectClass.DxfName)
                 {
                     case "TEXT":
-                        DBText text = (DBText)so.ObjectId.GetObject(OpenMode.ForRead);
+                        DBText text = (DBText)oid.GetObject(OpenMode.ForRead);
                         _texts.Add(new Text(text.TextString, new Point2d(text.Position.X, text.Position.Y), text.Height));
                         break;
                     case "MTEXT":
-                        MText mText = (MText)so.ObjectId.GetObject(OpenMode.ForRead);
+                        MText mText = (MText)oid.GetObject(OpenMode.ForRead);
                         _texts.Add(new Text(mText.Text, new Point2d(mText.Location.X, mText.Location.Y), mText.Height));
                         break;
                     case "LINE":
-                        Line line = (Line)so.ObjectId.GetObject(OpenMode.ForRead);
+                        Line line = (Line)oid.GetObject(OpenMode.ForRead);
                         Point2d ptStart = new Point2d(line.StartPoint.X, line.StartPoint.Y);
                         Point2d ptEnd = new Point2d(line.EndPoint.X, line.EndPoint.Y);
                         if (!IsOrthogonalLine(ptStart, ptEnd))
@@ -407,7 +352,7 @@ namespace AcCommandTest
                         }
                         break;
                     case "LWPOLYLINE":
-                        Polyline pLine = (Polyline)so.ObjectId.GetObject(OpenMode.ForRead);
+                        Polyline pLine = (Polyline)oid.GetObject(OpenMode.ForRead);
                         Point2d pt0 = pLine.GetPoint2dAt(0);
                         Point2d ptPre = pt0;
                         for (int i = 1; i < pLine.NumberOfVertices; i++)
@@ -448,7 +393,7 @@ namespace AcCommandTest
                         }
                         break;
                     default:
-                        //System.Windows.Forms.MessageBox.Show(so.ObjectId.ObjectClass.DxfName);
+                        //System.Windows.Forms.MessageBox.Show(oid.ObjectClass.DxfName);
                         break;
                 }
             }

@@ -40,19 +40,35 @@ namespace AcCommandTest
                         return;
                     }
                     SelectionSet sset = psr.Value;
-                    AcTable table = AcTableParser.ParseTable(sset);
+                    AcTable table = null;
+                    // 块类型的表格
+                    if (sset.Count == 1 && sset[0].ObjectId.ObjectClass.DxfName == "INSERT")
+                    {
+                        Entity entity = sset[0].ObjectId.GetObject(OpenMode.ForRead) as Entity;
+                        if (entity is BlockReference)
+                        {
+                            BlockReference br = entity as BlockReference;
+                            BlockTableRecord btr = br.BlockTableRecord.GetObject(OpenMode.ForRead) as BlockTableRecord;
+                            table = AcTableParser.ParseTable(btr);
+                        }
+                    }
+                    else
+                    {
+                        table = AcTableParser.ParseTable(sset.GetObjectIds());
+                    }
 
+                    if (table == null || table.RowCount == 0)
+                    {
+                        editor.WriteMessage("\n无法识别表格");
+                    }
                     ConsoleTableOptions options = new ConsoleTableOptions();
                     ConsoleTable consoleTable = new ConsoleTable(options);
-                    if (table.HasHeader)
+                    consoleTable.AddColumn(table.Cells[0].Select((cell) => cell.Value));
+                    for (int i = 1; i < table.RowCount; i++)
                     {
-                        consoleTable.AddColumn(table.Header);
+                        consoleTable.AddRow(table.Cells[i].Select((cell) => cell.Value).ToArray());
                     }
-                    for (int i = 0; i < table.DataRowCount; i++)
-                    {
-                        consoleTable.AddRow(table.Data[i]);
-                    }
-                    editor.WriteMessage("\n" + consoleTable.ToString());
+                    editor.WriteMessage("\n" + consoleTable.ToMarkDownString());
                     trans.Commit();
                 }
             }
