@@ -19,7 +19,6 @@ namespace AcCommandTest
     {
         public FontCommand()
         {
-            FontUtils.PutFontFiles();
             Editor editor = Application.DocumentManager.MdiActiveDocument.Editor;
         }
 

@@ -45,4 +45,13 @@ namespace AcCommandTest
                 ColCount, DataRowCount, HasHeader.ToString(), HasFooter.ToString());
         }
     }
+
+    /// <summary>
+    /// AutoCad表格的格子
+    /// </summary>
+    public class AcTableCell
+    {
+        public int MyProperty { get; set; }
+        public string Value { get; set; }
+    }
 }

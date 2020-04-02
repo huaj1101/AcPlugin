@@ -27,6 +27,7 @@ namespace AcPluginTest
             loader.LoadCommands();
 
             //处理字体
+            FontUtils.PutFontFiles();
             foreach (Document doc in Application.DocumentManager)
             {
                 FontUtils.ProcessFont(doc);

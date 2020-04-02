@@ -70,6 +70,15 @@ namespace AcCommandTest
                                 sb.Append(pLine.GetPoint2dAt(i).ToString());
                             }
                         }
+                        else if (so.ObjectId.ObjectClass.DxfName == "INSERT")
+                        {
+                            Entity entity = (Entity)so.ObjectId.GetObject(OpenMode.ForWrite);
+                            if (entity is BlockReference)
+                            {
+                                BlockReference br = entity as BlockReference;
+                                sb.Append(br.Name);
+                            }
+                        }
                     }
                     editor.WriteMessage(sb.ToString());
                     trans.Commit();
