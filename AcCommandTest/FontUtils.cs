@@ -11,6 +11,8 @@ namespace AcCommandTest
 {
     public class FontUtils
     {
+        private static readonly double XSCALE = 0.6;
+
         private static string AssemblyDirectory
         {
             get
@@ -72,13 +74,29 @@ namespace AcCommandTest
                     if (!(btr.IsLayout || btr.IsAnonymous || btr.IsFromExternalReference || btr.IsFromOverlayReference))
                     {
                         ChangeTextStyle(btr, mcTextStyleId);
+                        // 刷新块引用
+                        foreach (ObjectId brId in btr.GetBlockReferenceIds(true, true))
+                        {
+                            var br = (BlockReference)tr.GetObject(brId, OpenMode.ForRead);
+                            br.RecordGraphicsModified(true);
+                        }
+                        if (btr.IsDynamicBlock)
+                        {
+                            foreach (ObjectId btrId in btr.GetAnonymousBlockIds())
+                            {
+                                var anonymousBtr = (BlockTableRecord)tr.GetObject(btrId, OpenMode.ForRead);
+                                foreach (ObjectId brId in anonymousBtr.GetBlockReferenceIds(true, true))
+                                {
+                                    var br = (BlockReference)tr.GetObject(brId, OpenMode.ForRead);
+                                    br.RecordGraphicsModified(true);
+                                }
+                            }
+                        }
                     }
                 }
+
                 tr.Commit();
                 doc.Editor.WriteMessage("\n处理字体成功，用时{0:f2}s。\n", (DateTime.Now - start).TotalSeconds);
-                start = DateTime.Now;
-                doc.Editor.Regen();
-                doc.Editor.WriteMessage("\n重生成模型成功，用时{0:f2}s。\n", (DateTime.Now - start).TotalSeconds);
             }
         }
 
@@ -91,6 +109,7 @@ namespace AcCommandTest
                 {
                     DBText text = (DBText)oid.GetObject(OpenMode.ForWrite);
                     text.TextStyleId = textStyleId;
+                    text.WidthFactor = XSCALE;
                 }
                 else if (oid.ObjectClass.DxfName == "MTEXT")
                 {
@@ -113,6 +132,7 @@ namespace AcCommandTest
                         {
                             ChangeTextStyle(br.BlockTableRecord.GetObject(OpenMode.ForWrite) as BlockTableRecord, textStyleId);
                         }
+                        br.RecordGraphicsModified(true);
                     }
                 }
             }
@@ -144,7 +164,7 @@ namespace AcCommandTest
                 newRecord.FileName = "@mc_symbol";
                 newRecord.BigFontFileName = "@mc_bigfont";
                 newRecord.TextSize = 0;
-                newRecord.XScale = 0.45;
+                newRecord.XScale = XSCALE;
                 tst.UpgradeOpen();
                 tst.Add(newRecord);
                 tr.AddNewlyCreatedDBObject(newRecord, true);

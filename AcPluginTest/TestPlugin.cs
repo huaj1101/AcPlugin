@@ -34,9 +34,6 @@ namespace AcPluginTest
             }
             //注册事件
             Application.DocumentManager.DocumentCreated += DocumentManager_DocumentCreated;
-
-            editor.WriteMessage("FontCommand Init\r\n");
-
         }
 
 
