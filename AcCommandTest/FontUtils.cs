@@ -35,11 +35,15 @@ namespace AcCommandTest
                 string dest_file = acFontDir + pure_file_name;
                 try
                 {
-                    File.Copy(file, dest_file, true);
+                    if (!File.Exists(dest_file))
+                    {
+                        File.Copy(file, dest_file, true);
+                    }
                 }
-                catch (System.IO.IOException)
+                catch (System.IO.IOException e)
                 {
-                    //覆盖不掉就算了
+                    //覆盖不掉提示一下
+                    System.Windows.Forms.MessageBox.Show(e.Message);
                 }
             }
         }
