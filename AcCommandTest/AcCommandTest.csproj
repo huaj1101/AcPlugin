@@ -77,12 +77,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EnumEntitiesCommand.cs" />
-    <Compile Include="FontUtils.cs" />
     <Compile Include="TableParse\AcTable.cs" />
     <Compile Include="TableParse\AcTableParseException.cs" />
     <Compile Include="TableParse\AcTableParser.cs" />
     <Compile Include="TableParse\ConsoleTables.cs" />
-    <Compile Include="FontCommand.cs" />
     <Compile Include="DrawCircleCommand.cs" />
     <Compile Include="TableCopyCommand.cs" />
     <Compile Include="ShowPickCommand.cs" />

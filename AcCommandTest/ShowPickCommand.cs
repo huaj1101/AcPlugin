@@ -53,7 +53,8 @@ namespace AcCommandTest
                         else if (so.ObjectId.ObjectClass.DxfName == "MTEXT")
                         {
                             MText text = (MText)so.ObjectId.GetObject(OpenMode.ForRead);
-                            sb.Append(text.Text);
+                            sb.AppendLine(text.Contents);
+                            sb.AppendLine(text.Text);
                             //sb.Append(text.Location.ToString());
                         }
                         else if (so.ObjectId.ObjectClass.DxfName == "LINE")

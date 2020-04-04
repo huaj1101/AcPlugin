@@ -85,9 +85,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\AcCommandTest\FontUtils.cs">
-      <Link>FontUtils.cs</Link>
-    </Compile>
+    <Compile Include="FontUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestPlugin.cs" />
   </ItemGroup>
