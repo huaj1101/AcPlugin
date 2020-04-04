@@ -22,24 +22,39 @@ namespace AcPluginTest
         public void Initialize()
         {
             Editor editor = Application.DocumentManager.MdiActiveDocument.Editor;
-            editor.WriteMessage("AcPluginTest插件初始化\r\n");
+            editor.WriteMessage("AcPluginTest插件初始化\n");
             CommandLoader loader = new CommandLoader();
             loader.LoadCommands();
 
             //处理字体
-            FontUtils.PutFontFiles();
-            foreach (Document doc in Application.DocumentManager)
+            try
             {
-                FontUtils.ProcessFont(doc);
+                FontUtils.PutFontFiles();
+                FontUtils.ProcessFont(Application.DocumentManager.MdiActiveDocument);
+                Application.DocumentManager.MdiActiveDocument.UserData.Add("mc_font", true);
+            }
+            catch (System.Exception e)
+            {
+                editor.WriteMessage(e.ToString());
             }
             //注册事件
-            Application.DocumentManager.DocumentCreated += DocumentManager_DocumentCreated;
+            Application.DocumentManager.DocumentActivated += DocumentManager_DocumentActivated;
         }
 
-
-        void DocumentManager_DocumentCreated(object sender, DocumentCollectionEventArgs e)
+        void DocumentManager_DocumentActivated(object sender, DocumentCollectionEventArgs e)
         {
-            FontUtils.ProcessFont(e.Document);
+            if (!e.Document.UserData.Contains("mc_font"))
+            {
+                try
+                {
+                    FontUtils.ProcessFont(e.Document);
+                    e.Document.UserData.Add("mc_font", true);
+                }
+                catch (System.Exception ex)
+                {
+                    e.Document.Editor.WriteMessage(ex.ToString());
+                }
+            }
         }
 
         public void Terminate()
@@ -68,7 +83,7 @@ namespace AcPluginTest
             Assembly assembly = Assembly.Load(buffer);
 
             Editor editor = Application.DocumentManager.MdiActiveDocument.Editor;
-            editor.WriteMessage("加载AcCommandTest.dll");
+            editor.WriteMessage("加载AcCommandTest.dll\n");
         }
 
         /// <summary>

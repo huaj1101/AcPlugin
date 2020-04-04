@@ -58,43 +58,181 @@ namespace AcCommandTest
                 this.height = height;
             }
         }
+
+        /// <summary>
+        /// 格线方向
+        /// </summary>
+        enum TableLineDirection
+        {
+            H,
+            V
+        }
+
+        /// <summary>
+        /// 线段
+        /// </summary>
+        struct LineSegment
+        {
+            private Point2d _start;
+            /// <summary>
+            /// 开始点
+            /// </summary>
+            public Point2d Start
+            {
+                get { return _start; }
+            }
+
+            private Point2d _end;
+            /// <summary>
+            /// 结束点
+            /// </summary>
+            public Point2d End
+            {
+                get { return _end; }
+            }
+
+            public LineSegment(Point2d start, Point2d end)
+            {
+                _start = start;
+                _end = end;
+            }
+        }
+
         /// <summary>
         /// 表格线的结构
         /// </summary>
-        struct TableLine
+        class TableLine
         {
-            private Point2d point1;
-            /// <summary>
-            /// 起始点，对于水平线来说，是左边的点（X小的），对于竖直线来说，是上边的点（Y大的）
-            /// </summary>
-            public Point2d Point1
-            {
-                get { return point1; }
-            }
+            private TableLineDirection _direction;
 
-            private Point2d point2;
+            private List<LineSegment> _segments = new List<LineSegment>();
             /// <summary>
-            /// 结束点，对于水平线来说，是右边的点（X大的），对于竖直线来说，是下边的点（Y小的）
+            /// 格线中的线段
             /// </summary>
-            public Point2d Point2
-            {
-                get { return point2; }
-            }
+            public List<LineSegment> Segments { get { return _segments; } }
 
-            public TableLine(Point2d pt1, Point2d pt2)
+            private double _xory;
+            /// <summary>
+            /// 线的位置，对于横线来说是Y值，对于竖线来说是X值
+            /// </summary>
+            public double XorY { get { return _xory; } }
+
+            /// <summary>
+            /// 是否接受一个线段，即该线段是否可以归到这条格线中
+            /// 这里默认线段已经是正交的，应在调用之前做好判断
+            /// </summary>
+            /// <param name="start"></param>
+            /// <param name="end"></param>
+            /// <returns></returns>
+            public bool AcceptSegment(Point2d pt1, Point2d pt2)
             {
-                if (DoubleValueCompare(pt1.X, pt2.X) < 0 || DoubleValueCompare(pt1.Y, pt2.Y) > 0)
+                TableLineDirection direction;
+                double xory = 0;
+                if (DoubleValueCompare(pt1.X, pt2.X) == 0)
                 {
-                    this.point1 = pt1;
-                    this.point2 = pt2;
+                    direction = TableLineDirection.V;
+                    xory = pt1.X;
                 }
                 else
                 {
-                    this.point1 = pt2;
-                    this.point2 = pt1;
+                    direction = TableLineDirection.H;
+                    xory = pt1.Y;
+                }
+                return direction == _direction && (_segments.Count == 0 || DoubleValueCompare(xory, _xory) == 0);
+            }
+
+            /// <summary>
+            /// 向格线中添加一段
+            /// 应提前调用Accept方法判断是否应该属于该格线，本方法中不再判断
+            /// </summary>
+            /// <param name="pt1"></param>
+            /// <param name="pt2"></param>
+            public void AddSegment(Point2d pt1, Point2d pt2)
+            {
+                Point2d start, end;
+                if (pt1.Y > pt2.Y || pt1.X < pt2.X)
+                {
+                    start = pt1;
+                    end = pt2;
+                }
+                else
+                {
+                    start = pt2;
+                    end = pt1;
+                }
+
+                if (_direction == TableLineDirection.H)
+                {
+                    if (_segments.Count == 0)
+                    {
+                        _xory = start.Y;
+                        _segments.Add(new LineSegment(start, end));
+                    }
+                    for (int i = 0; i < _segments.Count; i++)
+                    {
+                        if (start.X < _segments[i].Start.X)
+                        {
+                            _segments.Insert(i, new LineSegment(start, end));
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (_segments.Count == 0)
+                    {
+                        _xory = start.X;
+                        _segments.Add(new LineSegment(start, end));
+                    }
+                    for (int i = 0; i < _segments.Count; i++)
+                    {
+                        if (start.Y > _segments[i].Start.Y)
+                        {
+                            _segments.Insert(i, new LineSegment(start, end));
+                            break;
+                        }
+                    }
                 }
             }
+
+            public TableLine(TableLineDirection direction)
+            {
+                _direction = direction;
+            }
+
+            /// <summary>
+            /// 构造器
+            /// 这里默认线段已经是正交的，应在调用之前做好判断
+            /// </summary>
+            /// <param name="start"></param>
+            /// <param name="end"></param>
+            public TableLine(Point2d pt1, Point2d pt2)
+            {
+                if (DoubleValueCompare(pt1.X, pt2.X) == 0)
+                {
+                    _direction = TableLineDirection.V;
+                    _xory = pt1.X;
+                }
+                else
+                {
+                    _direction = TableLineDirection.H;
+                    _xory = pt2.Y;
+                }
+                Point2d start, end;
+                if (pt1.Y > pt2.Y || pt1.X < pt2.X)
+                {
+                    start = pt1;
+                    end = pt2;
+                }
+                else
+                {
+                    start = pt2;
+                    end = pt1;
+                }
+                _segments.Add(new LineSegment(start, end));
+            }
         }
+
         /// <summary>
         /// 格子
         /// </summary>
@@ -309,8 +447,8 @@ namespace AcCommandTest
                     TableCell tc = new TableCell();
                     tc.Row = i;
                     tc.Col = j;
-                    tc.TopLeft = new Point2d(_tableVLines[j].Point1.X, _tableHLines[i].Point1.Y);
-                    tc.BottomRight = new Point2d(_tableVLines[j + 1].Point1.X, _tableHLines[i + 1].Point1.Y);
+                    tc.TopLeft = new Point2d(_tableVLines[j].XorY, _tableHLines[i].XorY);
+                    tc.BottomRight = new Point2d(_tableVLines[j + 1].XorY, _tableHLines[i + 1].XorY);
                     _cells[i, j] = tc;
                 }
             }
@@ -336,61 +474,11 @@ namespace AcCommandTest
                         break;
                     case "LINE":
                         Line line = (Line)oid.GetObject(OpenMode.ForRead);
-                        Point2d ptStart = new Point2d(line.StartPoint.X, line.StartPoint.Y);
-                        Point2d ptEnd = new Point2d(line.EndPoint.X, line.EndPoint.Y);
-                        if (!IsOrthogonalLine(ptStart, ptEnd))
-                        {
-                            throw new AcTableParseException(string.Format("只支持正交的直线 {0:s} {1:s}", ptStart.ToString(), ptEnd.ToString()));
-                        }
-                        if (DoubleValueCompare(line.StartPoint.X, line.EndPoint.X) == 0)
-                        {
-                            _tableVLines.Add(new TableLine(ptStart, ptEnd));
-                        }
-                        else
-                        {
-                            _tableHLines.Add(new TableLine(ptStart, ptEnd));
-                        }
+                        ParseLine(new Point2d(line.StartPoint.X, line.StartPoint.Y), new Point2d(line.EndPoint.X, line.EndPoint.Y));
                         break;
                     case "LWPOLYLINE":
                         Polyline pLine = (Polyline)oid.GetObject(OpenMode.ForRead);
-                        Point2d pt0 = pLine.GetPoint2dAt(0);
-                        Point2d ptPre = pt0;
-                        for (int i = 1; i < pLine.NumberOfVertices; i++)
-                        {
-                            Point2d ptCur = pLine.GetPoint2dAt(i);
-                            if (!IsOrthogonalLine(ptCur, ptPre))
-                            {
-                                throw new AcTableParseException("只支持由正交的直线组成的多段线");
-                            }
-                            if (DoubleValueCompare(ptPre.X, ptCur.X) == 0)
-                            {
-                                _tableVLines.Add(new TableLine(ptPre, ptCur));
-                            }
-                            else
-                            {
-                                _tableHLines.Add(new TableLine(ptPre, ptCur));
-                            }
-
-                            if (pLine.Closed && i == pLine.NumberOfVertices - 1)
-                            {
-                                if (!IsOrthogonalLine(ptCur, pt0))
-                                {
-                                    throw new AcTableParseException("只支持由正交的直线组成的多段线");
-                                }
-                                if (DoubleValueCompare(ptCur.X, pt0.X) == 0)
-                                {
-                                    _tableVLines.Add(new TableLine(ptCur, pt0));
-                                }
-                                else
-                                {
-                                    _tableHLines.Add(new TableLine(ptCur, pt0));
-                                }
-                            }
-                            else
-                            {
-                                ptPre = ptCur;
-                            }
-                        }
+                        ParsePolyLine(pLine);
                         break;
                     default:
                         //System.Windows.Forms.MessageBox.Show(oid.ObjectClass.DxfName);
@@ -407,8 +495,69 @@ namespace AcCommandTest
             }
             _texts.Sort((item1, item2) => (int)(item1.Position.X - item2.Position.X));
             //上面的线Y坐标更大，所以反着排序
-            _tableHLines.Sort((item1, item2) => (int)(item2.Point1.Y - item1.Point1.Y));
-            _tableVLines.Sort((item1, item2) => (int)(item1.Point1.X - item2.Point1.X));
+            _tableHLines.Sort((item1, item2) => (int)(item2.XorY - item1.XorY));
+            _tableVLines.Sort((item1, item2) => (int)(item1.XorY - item2.XorY));
+        }
+
+        /// <summary>
+        /// 解析多段线
+        /// </summary>
+        /// <param name="pLine"></param>
+        private void ParsePolyLine(Polyline pLine)
+        {
+            Point2d pt0 = pLine.GetPoint2dAt(0);
+            Point2d ptPre = pt0;
+            for (int i = 1; i < pLine.NumberOfVertices; i++)
+            {
+                Point2d ptCur = pLine.GetPoint2dAt(i);
+                ParseLine(ptPre, ptCur);
+
+                if (pLine.Closed && i == pLine.NumberOfVertices - 1)
+                {
+                    ParseLine(ptCur, pt0);
+                }
+                else
+                {
+                    ptPre = ptCur;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 解析直线
+        /// </summary>
+        /// <param name="line"></param>
+        private void ParseLine(Point2d ptStart, Point2d ptEnd)
+        {
+            if (!IsOrthogonalLine(ptStart, ptEnd))
+            {
+                //表格里会有斜线代表空格，直接跳过
+                //throw new AcTableParseException(string.Format("只支持正交的直线 {0:s} {1:s}", ptStart.ToString(), ptEnd.ToString()));
+                return;
+            }
+            List<TableLine> list;
+            if (DoubleValueCompare(ptStart.X, ptEnd.X) == 0)
+            {
+                list = _tableVLines;
+            }
+            else
+            {
+                list = _tableHLines;
+            }
+            bool add = false;
+            foreach (TableLine tl in list)
+            {
+                if (tl.AcceptSegment(ptStart, ptEnd))
+                {
+                    tl.AddSegment(ptStart, ptEnd);
+                    add = true;
+                    break;
+                }
+            }
+            if (!add)
+            {
+                list.Add(new TableLine(ptStart, ptEnd));
+            }
         }
 
         /// <summary>
