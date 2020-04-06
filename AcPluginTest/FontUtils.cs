@@ -71,17 +71,22 @@ namespace AcCommandTest
                         TextStyleTableRecord record = (TextStyleTableRecord)oid.GetObject(OpenMode.ForRead);
                         if (record.FileName != "@mc_symbol")
                         {
+                            doc.UserData[record.Name] = true;
                             record.UpgradeOpen();
                             record.FileName = "@mc_symbol";
                             record.BigFontFileName = "@mc_bigfont";
                             record.XScale = record.XScale * WIDTH_SCALE;
+                        }
+                        else
+                        {
+                            doc.UserData[record.Name] = false;
                         }
                     }
 
                     // 替换模型空间的实体的文本样式
                     BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                     BlockTableRecord modelSpace = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-                    Redraw(modelSpace);
+                    Redraw(doc, modelSpace);
 
                     // 替换块定义的文本样式
                     foreach (ObjectId id in bt)
@@ -89,7 +94,7 @@ namespace AcCommandTest
                         var btr = (BlockTableRecord)tr.GetObject(id, OpenMode.ForRead);
                         if (!(btr.IsLayout || btr.IsAnonymous || btr.IsFromExternalReference || btr.IsFromOverlayReference))
                         {
-                            Redraw(btr);
+                            Redraw(doc, btr);
                             // 刷新块引用
                             foreach (ObjectId brId in btr.GetBlockReferenceIds(true, true))
                             {
@@ -116,7 +121,7 @@ namespace AcCommandTest
             doc.Editor.WriteMessage("\n处理字体成功，用时{0:f2}s。\n", (DateTime.Now - start).TotalSeconds);
         }
 
-        private static void Redraw(BlockTableRecord btr)
+        private static void Redraw(Document doc, BlockTableRecord btr)
         {
             Regex regex = new Regex(@"\\[Ff][^;]+;");
             
@@ -126,16 +131,22 @@ namespace AcCommandTest
                 if (oid.ObjectClass.DxfName == "TEXT")
                 {
                     DBText text = (DBText)oid.GetObject(OpenMode.ForWrite);
-                    text.WidthFactor = text.WidthFactor * WIDTH_SCALE;
-                    text.Height = text.Height * HEIGHT_SCALE;
+                    if (doc.UserData.ContainsKey(text.TextStyleName) && (bool)doc.UserData[text.TextStyleName])
+                    {
+                        text.WidthFactor = text.WidthFactor * WIDTH_SCALE;
+                        text.Height = text.Height * HEIGHT_SCALE;
+                    }
                 }
                 else if (oid.ObjectClass.DxfName == "MTEXT")
                 {
                     MText text = (MText)oid.GetObject(OpenMode.ForWrite);
-                    text.TextHeight = text.TextHeight * HEIGHT_SCALE;
-                    text.LineSpacingFactor = text.LineSpacingFactor * HEIGHT_SCALE;
-                    // 多行文本中可以嵌入字体，去掉这个信息
-                    text.Contents = regex.Replace(text.Contents, "");
+                    if (doc.UserData.ContainsKey(text.TextStyleName) && (bool)doc.UserData[text.TextStyleName])
+                    {
+                        text.TextHeight = text.TextHeight * HEIGHT_SCALE;
+                        text.LineSpacingFactor = text.LineSpacingFactor * HEIGHT_SCALE;
+                        // 多行文本中可以嵌入字体，去掉这个信息
+                        text.Contents = regex.Replace(text.Contents, "");
+                    }
                 }
                 else if (oid.ObjectClass.DxfName == "DIMENSION")
                 {
@@ -151,7 +162,7 @@ namespace AcCommandTest
                         // 处理未命名块（命名块在其他地方处理）
                         if (br.Name.StartsWith("*"))
                         {
-                            Redraw(br.BlockTableRecord.GetObject(OpenMode.ForRead) as BlockTableRecord);
+                            Redraw(doc, br.BlockTableRecord.GetObject(OpenMode.ForRead) as BlockTableRecord);
                         }
                         br.RecordGraphicsModified(true);
                     }

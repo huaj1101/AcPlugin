@@ -76,11 +76,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandUtils.cs" />
     <Compile Include="EnumEntitiesCommand.cs" />
-    <Compile Include="TableParse\AcTable.cs" />
+    <Compile Include="TableParse\AcLineSegment.cs" />
+    <Compile Include="TableParse\AcTableCell.cs" />
+    <Compile Include="TableParse\AcTableLine.cs" />
+    <Compile Include="TableParse\AcTableLineDirection.cs" />
+    <Compile Include="TableParse\AcText.cs" />
+    <Compile Include="TableParse\Table.cs" />
     <Compile Include="TableParse\AcTableParseException.cs" />
     <Compile Include="TableParse\AcTableParser.cs" />
-    <Compile Include="TableParse\ConsoleTables.cs" />
+    <Compile Include="ConsoleTables.cs" />
     <Compile Include="DrawCircleCommand.cs" />
     <Compile Include="TableCopyCommand.cs" />
     <Compile Include="ShowPickCommand.cs" />

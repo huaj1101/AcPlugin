@@ -8,7 +8,7 @@ namespace AcCommandTest
     /// <summary>
     /// 解析AutoCad表格的结果
     /// </summary>
-    public class AcTable
+    public class Table
     {
         /// <summary>
         /// 行的数量
@@ -21,7 +21,7 @@ namespace AcCommandTest
         /// <summary>
         /// 数据
         /// </summary>
-        public AcTableCell[][] Cells { get; set; }
+        public TableCell[][] Cells { get; set; }
 
         public override string ToString()
         {
@@ -32,7 +32,7 @@ namespace AcCommandTest
     /// <summary>
     /// AutoCad表格的格子
     /// </summary>
-    public class AcTableCell
+    public class TableCell
     {
         /// <summary>
         /// 行
@@ -53,21 +53,29 @@ namespace AcCommandTest
         /// <summary>
         /// 格子类型
         /// </summary>
-        public AcTableCellType CellType { get; set; }
+        public TableCellType CellType { get; set; }
         /// <summary>
         /// 主格，CellType为MergedSlave时适用
         /// </summary>
-        public AcTableCell MasterCell { get; set; }
+        public TableCell MasterCell { get; set; }
         /// <summary>
         /// 格子的值
         /// </summary>
         public string Value { get; set; }
+
+        public TableCell()
+        {
+            RowSpan = 1;
+            ColSpan = 1;
+            CellType = TableCellType.Normal;
+            Value = "";
+        }
     }
 
     /// <summary>
     /// AutoCad表格的格子类型
     /// </summary>
-    public enum AcTableCellType
+    public enum TableCellType
     {
         /// <summary>
         /// 正常格子（无合并）

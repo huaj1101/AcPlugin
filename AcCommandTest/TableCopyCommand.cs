@@ -40,7 +40,7 @@ namespace AcCommandTest
                         return;
                     }
                     SelectionSet sset = psr.Value;
-                    AcTable table = null;
+                    Table table = null;
                     // 块类型的表格
                     if (sset.Count == 1 && sset[0].ObjectId.ObjectClass.DxfName == "INSERT")
                     {
@@ -64,9 +64,38 @@ namespace AcCommandTest
                     ConsoleTableOptions options = new ConsoleTableOptions();
                     ConsoleTable consoleTable = new ConsoleTable(options);
                     consoleTable.AddColumn(table.Cells[0].Select((cell) => cell.Value));
+                    //consoleTable.AddColumn(table.Cells[0].Select((cell) =>
+                    //{
+                    //    switch (cell.CellType)
+                    //    {
+                    //        case TableCellType.Normal:
+                    //            return "N";
+                    //        case TableCellType.MergedMaster:
+                    //            return string.Format("M {0:d} {1:d}", cell.RowSpan, cell.ColSpan);
+                    //        case TableCellType.MergedSlave:
+                    //            return "S";
+                    //        default:
+                    //            return "";
+                    //    }
+                    //}).ToArray());
                     for (int i = 1; i < table.RowCount; i++)
                     {
                         consoleTable.AddRow(table.Cells[i].Select((cell) => cell.Value).ToArray());
+                        //consoleTable.AddRow(table.Cells[i].Select((cell) => 
+                        //    {
+                        //        switch (cell.CellType)
+                        //        {
+                        //            case TableCellType.Normal:
+                        //                return "N";
+                        //            case TableCellType.MergedMaster:
+                        //                return string.Format("M {0:d} {1:d}", cell.RowSpan, cell.ColSpan);
+                        //            case TableCellType.MergedSlave:
+                        //                return "S";
+                        //            default:
+                        //                return "";
+                        //        }
+                                
+                        //    }).ToArray());
                     }
                     editor.WriteMessage("\n" + consoleTable.ToMarkDownString());
                     trans.Commit();
