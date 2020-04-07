@@ -79,11 +79,17 @@ namespace AcPluginTest
         [CommandMethod("mcload")]
         public void LoadCommands()
         {
-            byte[] buffer = System.IO.File.ReadAllBytes(Path.Combine(AssemblyDirectory, "AcCommandTest.dll"));
+            LoadAssemblyFile("AcCommandTest.dll");
+            LoadAssemblyFile("EPPlus.dll");
+        }
+
+        private static void LoadAssemblyFile(string file)
+        {
+            byte[] buffer = System.IO.File.ReadAllBytes(Path.Combine(AssemblyDirectory, file));
             Assembly assembly = Assembly.Load(buffer);
 
             Editor editor = Application.DocumentManager.MdiActiveDocument.Editor;
-            editor.WriteMessage("加载AcCommandTest.dll\n");
+            editor.WriteMessage("加载{0:s}\n", file);
         }
 
         /// <summary>

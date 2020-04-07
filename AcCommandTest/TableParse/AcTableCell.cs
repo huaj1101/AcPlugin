@@ -90,7 +90,7 @@ namespace AcCommandTest
                     //判断是否需要加分隔
                     if (i > 0 && InnerCell.Value != "" && Texts[prevIndex].Position.Y - Texts[i].Position.Y > (Texts[i].Height + Texts[prevIndex].Height) / 2)
                     {
-                        InnerCell.Value += " ";
+                        InnerCell.Value += "\n";
                     }
                     InnerCell.Value += parts[i];
                     prevIndex = i;

@@ -89,6 +89,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestPlugin.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AcCommandTest\AcCommandTest.csproj">
+      <Project>{151ba15c-5e60-4a29-ad5f-a3b8cd809b65}</Project>
+      <Name>AcCommandTest</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
