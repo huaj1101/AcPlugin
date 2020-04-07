@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AcCommandTest
 {
@@ -20,6 +21,27 @@ namespace AcCommandTest
         public AcTableLine BottomLine { get; set; }
         public List<AcText> Texts { get; set; }
         public TableCell InnerCell { get; set; }
+        private static Dictionary<string, string> _specials = new Dictionary<string, string>();
+        private static Regex _specialRegex;
+
+        static AcTableCell()
+        {
+            //初始化特殊字符对照表
+            _specials["%%P"] = "±";
+            _specials["%%p"] = "±";
+            _specials["%%C"] = "φ";
+            _specials["%%c"] = "φ";
+            _specials["%%D"] = "°";
+            _specials["%%d"] = "°";
+            _specials["%%%"] = "%";
+            _specials["%%130"] = "φ";
+            _specials["%%131"] = "φ";
+            _specials["%%132"] = "φ";
+            _specials["%%133"] = "φ";
+            _specials["M3/"] = "m³";
+            _specials["m3/"] = "m³";
+            _specialRegex = new Regex(@"%%\d{3}");
+        }
 
         public AcTableCell()
         {
@@ -105,7 +127,12 @@ namespace AcCommandTest
         /// <returns></returns>
         private string ProcessSpecialText(string s)
         {
-            return s.Replace("m3/", "m³"); //有的多行文本中的立方米，解析出来是奇怪的m3/三个字符
+            foreach (string key in _specials.Keys)
+            {
+                s = s.Replace(key, _specials[key]);
+            }
+            s = _specialRegex.Replace(s, "");
+            return s;
         }
     }
 }

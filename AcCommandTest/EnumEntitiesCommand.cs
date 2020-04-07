@@ -23,83 +23,78 @@ namespace AcCommandTest
             editor.WriteMessage("EnumEntitiesCommand Init\r\n");
         }
 
-
         [CommandMethod("ee")]
-        public void ChangeFont()
+        public void EnumEntities()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
 
-            using (Transaction tr = db.TransactionManager.StartTransaction())
+            StringBuilder sb = new StringBuilder();
+            using (DocumentLock m_DocumentLock = Application.DocumentManager.MdiActiveDocument.LockDocument())
             {
-                StringBuilder sb = new StringBuilder();
-                // 获取模型空间
-                BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                BlockTableRecord modelSpace = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
-                foreach (var item in blockTbl)
+                using (Transaction tr = db.TransactionManager.StartTransaction())
                 {
-                    
-                }
 
-                int index = 1;
-                // 替换模型里所有文本的TextStyle
-                foreach (ObjectId oid in modelSpace)
-                {
-                    DBObject obj = oid.GetObject(OpenMode.ForRead);
-                    if (obj is Entity)
-                    {
-                        string line = string.Format("{0:d} {1:s} {2:s}", index++, oid.ObjectClass.DxfName, obj.GetType().Name);
-                        sb.AppendLine(line);
-                    }
-                    if (obj is BlockReference)
-                    {
-                        BlockReference bref = obj as BlockReference;
-                        DBObject block = bref.BlockTableRecord.GetObject(OpenMode.ForRead);
-                        string line = string.Format("{0:d} {1:s} {2:s}", -1, bref.BlockTableRecord.ObjectClass.DxfName, block.GetType().Name);
-                        sb.AppendLine(line);
-                    }
-                }
-                //using (StreamWriter sw = new StreamWriter(@"d:\output.txt"))
-                //{
-                //    sw.Write(sb.ToString());
-                //}
-                doc.Editor.WriteMessage(sb.ToString());
-                tr.Commit();
+                    // 遍历模型空间
+                    BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                    BlockTableRecord modelSpace = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+                    sb.AppendLine(EnumBlockTableRecord(modelSpace));
 
+                    // 遍历块定义
+                    foreach (ObjectId id in bt)
+                    {
+                        var btr = (BlockTableRecord)tr.GetObject(id, OpenMode.ForRead);
+                        if (!(btr.IsLayout || btr.IsAnonymous || btr.IsFromExternalReference || btr.IsFromOverlayReference))
+                        {
+                            sb.AppendLine(EnumBlockTableRecord(btr));
+                        }
+                    }
+                    tr.Commit();
+                }
             }
+            using (StreamWriter sw = new StreamWriter(@"d:\enum_entities.txt"))
+            {
+                sw.Write(sb.ToString());
+            }
+            doc.Editor.WriteMessage(@"遍历结束，结果存储在 d:\enum_entities.txt");
         }
 
-        [CommandMethod("eb")]
-        public void ListBlockDefinitions()
+        private string EnumBlockTableRecord(BlockTableRecord btr)
         {
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            var db = doc.Database;
-            var ed = doc.Editor;
-            using (var tr = db.TransactionManager.StartTransaction())
+           StringBuilder sb = new StringBuilder();
+            // 替换模型里所有文本的TextStyle
+            foreach (ObjectId oid in btr)
             {
-                var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
-                foreach (ObjectId id in bt)
+                if (oid.ObjectClass.DxfName == "TEXT")
                 {
-                    var btr = (BlockTableRecord)tr.GetObject(id, OpenMode.ForRead);
-                    if (!(btr.IsLayout || btr.IsAnonymous || btr.IsFromExternalReference || btr.IsFromOverlayReference))
+                    DBText text = (DBText)oid.GetObject(OpenMode.ForWrite);
+                    sb.AppendLine(text.TextString);
+                }
+                else if (oid.ObjectClass.DxfName == "MTEXT")
+                {
+                    MText text = (MText)oid.GetObject(OpenMode.ForWrite);
+                    sb.AppendLine(text.Text);
+                }
+                else if (oid.ObjectClass.DxfName == "DIMENSION")
+                {
+                    Dimension dim = (Dimension)oid.GetObject(OpenMode.ForRead);
+                    sb.AppendLine(dim.DimensionText);
+                }
+                else if (oid.ObjectClass.DxfName == "INSERT")
+                {
+                    Entity entity = (Entity)oid.GetObject(OpenMode.ForRead);
+                    if (entity is BlockReference)
                     {
-                        ed.WriteMessage("\n" + btr.Name);
-                        if (btr.HasAttributeDefinitions)
+                        BlockReference br = entity as BlockReference;
+                        // 处理未命名块（命名块在其他地方处理）
+                        if (br.Name.StartsWith("*"))
                         {
-                            foreach (ObjectId attId in btr)
-                            {
-                                if (attId.ObjectClass.Name == "AcDbAttributeDefinition")
-                                {
-                                    var attDef = (AttributeDefinition)tr.GetObject(attId, OpenMode.ForRead);
-                                    ed.WriteMessage("\n\t" + attDef.Tag);
-                                }
-                            }
+                            sb.AppendLine(EnumBlockTableRecord(br.BlockTableRecord.GetObject(OpenMode.ForRead) as BlockTableRecord));
                         }
                     }
                 }
-                tr.Commit();
             }
-        }
-
+            return sb.ToString();
+    }
     }
 }
