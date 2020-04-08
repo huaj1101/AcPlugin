@@ -6,5 +6,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartProgram>D:\Program Files\Autodesk\AutoCAD 2014\acad.exe</StartProgram>
     <StartAction>Program</StartAction>
+    <StartArguments>/nologo /p "MC2020"</StartArguments>
   </PropertyGroup>
 </Project>

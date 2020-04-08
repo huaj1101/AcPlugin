@@ -55,6 +55,9 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
 
     public class UiManager
     {
+
+        private static AcadApplication AcadApp = Application.AcadApplication as AcadApplication;
+
         private static void McWriteMessage(string message)
         {
             if (Application.DocumentManager.MdiActiveDocument != null && Application.DocumentManager.MdiActiveDocument.Editor != null)
@@ -62,7 +65,6 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                 Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(message);
             }
         }
-
 
         [CommandMethod("McUiSwitch")]
         public void McUiSwitch()
@@ -85,17 +87,21 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             {
                 McWriteMessage("MyPlugin 插件 UI 加载开始\n");
 
+                AddAppEvent();
+                McWriteMessage("0.0  AddAppEvent()\n");
+
                 //使用不同的配置文件，与 AutoCAD 独立启动的情况区分开
                 McSetActiveProfile();
                 McWriteMessage("0.1  McSetActiveProfile()\n");
 
+                //Cui
+                //使用starter 时不需要执行？？
+                //McCustomCui();
+                //McWriteMessage("0.2  McCustomCui()\n");
+
                 //把工作空间设置为 “AutoCAD 经典”,这步必须最先处理
                 McWorkspace();
-                McWriteMessage("0.2  McWorkspace()\n");
-
-                //主菜单
-                McCustomMainMenu();
-                McWriteMessage("0.3  McCustomMainMenu()\n");
+                McWriteMessage("0.3  McWorkspace()\n");
 
                 //无选定对象时的右键菜单
                 McAddDefaultContextMenuItem();
@@ -143,11 +149,15 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                 McCloseRibbon();
                 McWriteMessage("11  McCloseRibbon()\n");
 
-                McWriteMessage("12  McCustomMainMenuBizShow()\n");
+                //主菜单隐藏原有部分
+                McCustomMainMenuClear();
+                McWriteMessage("12  McCustomMainMenuClear()\n");
+
+                McWriteMessage("13  McCustomMainMenuBizShow()\n");
                 McCustomMainMenuBizShow();
 
-                McWriteMessage("13  McCustomMainMenuSwitchHide()\n");
-                McCustomMainMenuSwitchHide();
+                resetProfileInRegistry(); //注册表中记录的值重置为默认配置文件，AutoCAD 独立启动时仍可使用默认配置文件
+                McWriteMessage("注册表选定配置信息已重置\n");
 
                 mcUiLoaded = true;
 
@@ -173,6 +183,37 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         }
 
         public void McUnLoad(bool terminate)
+        {
+            if (!terminate)
+            {
+                McWriteMessage("MyPlugin 插件 UI 卸载开始\n");
+
+                McPaletteSetLeftUn();
+                McWriteMessage("1  McPaletteSetLeftUn()\n");
+                McPaletteSetTopUn();
+                McWriteMessage("2  McPaletteSetTopUn()\n");
+                McPaletteSetBottomUn();
+                McWriteMessage("3  McPaletteSetBottomUn()\n");
+                McPaletteSetRightUn(); //WPF UserControl
+                McWriteMessage("4  McPaletteSetRightUn()\n");
+
+                McSetActiveProfileUn();
+                McWriteMessage("5  McSetActiveProfileUn()\n");
+
+                McCustomMainMenuSwitchShow();
+                McWriteMessage("6  McCustomMainMenuSwitchShow()\n");
+
+                mcUiLoaded = false;
+
+                McWriteMessage("MyPlugin 插件 UI 已卸载\n");
+            }
+            else
+            {
+                //TODO
+            }
+        }
+
+        public void McUnLoad____(bool terminate)
         {
             try
             {
@@ -260,6 +301,49 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
 
 
         //=============================================================================================================
+
+        [CommandMethod("AddAppEvent")]
+        public void AddAppEvent()
+        {
+            Application.SystemVariableChanged +=
+                new Autodesk.AutoCAD.ApplicationServices.
+                    SystemVariableChangedEventHandler(appSysVarChanged);
+        }
+
+        [CommandMethod("RemoveAppEvent")]
+        public void RemoveAppEvent()
+        {
+            Application.SystemVariableChanged -=
+                new Autodesk.AutoCAD.ApplicationServices.
+                    SystemVariableChangedEventHandler(appSysVarChanged);
+        }
+
+        public void appSysVarChanged(object senderObj,
+            Autodesk.AutoCAD.ApplicationServices.
+                SystemVariableChangedEventArgs sysVarChEvtArgs)
+        {
+            object oVal = Application.GetSystemVariable(sysVarChEvtArgs.Name);
+
+            // Display a message box with the system variable name and the new value
+            McWriteMessage(sysVarChEvtArgs.Name + " was changed." +
+                           "\nNew value: " + oVal.ToString() + "\n");
+
+            //if ("WSCURRENT".Equals(sysVarChEvtArgs.Name))
+            //{
+            //    if (mcUiLoaded)
+            //    {
+            //        McCustomMainMenuClear();
+            //        McCustomMainMenuBizShow();
+            //        McCustomToolbar();
+            //    }
+            //    else
+            //    {
+            //        McCustomMainMenuSwitchShow();
+            //    }
+
+            //    McWriteMessage("工作区切换，菜单栏和工具栏要重新处理\n");
+            //}
+        }
 
         #region 原始示例代码
 
@@ -409,19 +493,33 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                 return;
             }
             myPaletteSetTop = new PaletteSet("test PaletteSet top");
-            var s = new System.Drawing.Size(100, 100);
+            var s = new System.Drawing.Size(1920, 100);
             myPaletteSetTop.Size = s;
             myPaletteSetTop.MinimumSize = s;
             dockBarTop = new MyDockBarTop();
             myPaletteSetTop.Add("4", dockBarTop);
             myPaletteSetTop.TitleBarLocation = PaletteSetTitleBarLocation.Left;
+            myPaletteSetTop.Style = PaletteSetStyles.NoTitleBar;
+            
             myPaletteSetTop.Visible = true;
 
             // Visible 设置之后再设置尺寸和停靠
             myPaletteSetTop.Size = s;
             myPaletteSetTop.MinimumSize = s;
             myPaletteSetTop.DockEnabled = DockSides.Top;
-            myPaletteSetTop.Dock = DockSides.Top; 
+            myPaletteSetTop.Dock = DockSides.Top;
+            myPaletteSetTop.Style = PaletteSetStyles.NoTitleBar;
+
+            myPaletteSetTop.RolledUp = false;
+            myPaletteSetTop.SizeChanged += new PaletteSetSizeEventHandler((sender, e) =>
+            {
+                if (e.Height != 100)
+                {
+                    myPaletteSetTop.Size = new System.Drawing.Size(1920,100);
+                    myPaletteSetTop.Dock = DockSides.Top;
+                }
+                    
+            });
         }
 
         [CommandMethod("McPaletteSetTopUn")]
@@ -486,33 +584,30 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
 
         private const string MG_NAME_MCMENU = "MCMENU";
 
-        private static Autodesk.AutoCAD.Interop.AcadToolbar atbCustom = null;
         [CommandMethod("McCustomToolbar")]
         public void McCustomToolbar()
         {
-            if (atbCustom != null)
+            string mcToolbarName = "MC工具栏";
+            AcadMenuGroup mg = AcadApp.MenuGroups.Item(MG_NAME_MCMENU);
+            AcadToolbars atbs = mg.Toolbars;
+            for (int i = 0; i < atbs.Count; i++)
             {
-                atbCustom.Visible = true;
-                return;
+                if (mcToolbarName.Equals(atbs.Item(i).Name))
+                {
+                    atbs.Item(i).Visible = true;
+                    return;
+                }
             }
 
-            Autodesk.AutoCAD.Interop.AcadApplication acadApp = (AcadApplication)Autodesk.AutoCAD.ApplicationServices.Application.AcadApplication;
-            
-            AcadMenuGroup mg = acadApp.MenuGroups.Item(MG_NAME_MCMENU);
-            AcadToolbars atbs = mg.Toolbars;
-            
-            Autodesk.AutoCAD.Interop.AcadToolbarItem atbi = null;
-
             String dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            atbCustom = atbs.Add("MC工具栏");
+            
+            AcadToolbar atbCustom = atbs.Add(mcToolbarName);
             //示例atbi = atbCustom.AddToolbarButton(0, "工具栏名称", "帮助", "命令 ", false);
             //命令后，紧跟一空格，否则处于等待状态
-            atbi = atbCustom.AddToolbarButton(0, "对象信息窗口", "Test 显示置顶非模态窗口", "MyTopWindowShow ", false);
+            AcadToolbarItem atbi = atbCustom.AddToolbarButton(0, "对象信息窗口", "Test 显示置顶非模态窗口", "MyTopWindowShow ", false);
             //示例atbi.SetBitmaps(工具栏图片文件路径,工具栏图片文件路径);
             atbi.SetBitmaps(dir + "\\toolbutton1.bmp", dir + "\\toolbutton1.bmp");
             
-
             atbi = atbCustom.AddToolbarButton(1, "画圆", "Test 画圆", "McNewCircle ", false);
             atbi.SetBitmaps(dir + "\\toolbutton2.bmp", dir + "\\toolbutton2.bmp");
 
@@ -530,27 +625,32 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         [CommandMethod("McCustomToolbarUn")]
         public void McCustomToolbarUn()
         {
-            if (atbCustom != null)
+            string mcToolbarName = "MC工具栏";
+            AcadMenuGroup mg = AcadApp.MenuGroups.Item(MG_NAME_MCMENU);
+
+            AcadToolbars atbs = mg.Toolbars;
+            for (int i = 0; i < atbs.Count; i++)
             {
-                atbCustom.Visible = false;
+                if (mcToolbarName.Equals(atbs.Item(i).Name))
+                {
+                    atbs.Item(i).Visible = false;
+                    return;
+                }
             }
         }
 
-        private static List<AcadToolbar> hiddenToobars = new List<AcadToolbar>();
+        //private static List<AcadToolbar> hiddenToobars = new List<AcadToolbar>();
         [CommandMethod("McHideAllToolbar")]
         public void McHideAllToolbar()
         {
-            McHideAllToolbarUn(); //先复原
-
-            Autodesk.AutoCAD.Interop.AcadApplication acadApp = (AcadApplication)Autodesk.AutoCAD.ApplicationServices.Application.AcadApplication;
-            AcadMenuGroup mg = acadApp.MenuGroups.Item(MG_NAME_MCMENU);
+            AcadMenuGroup mg = AcadApp.MenuGroups.Item(MG_NAME_MCMENU);
 
             AcadToolbars atbs = mg.Toolbars;
             for (int i = 0; i < atbs.Count; i++)
             {
                 if (atbs.Item(i).Visible)
                 {
-                    hiddenToobars.Add(atbs.Item(i));
+                    //hiddenToobars.Add(atbs.Item(i));
                     atbs.Item(i).Visible = false;
                 }
             }
@@ -559,10 +659,10 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         [CommandMethod("McHideAllToolbarUn")]
         public void McHideAllToolbarUn()
         {
-            if (hiddenToobars.Count > 0)
-            {
-                hiddenToobars.ForEach((a) => a.Visible = true);
-            }
+            //if (hiddenToobars.Count > 0)
+            //{
+            //    hiddenToobars.ForEach((a) => a.Visible = true);
+            //}
         }
 
         private static RibbonTab myRibbonTab = null;
@@ -684,7 +784,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         [CommandMethod("McRibbonTabUn")]
         public void McRibbonTabUn()
         {
-
+            myRibbonTab = null;
         }
 
         //[CommandMethod("McCmdTest")]
@@ -792,142 +892,108 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
         }
 
-        private static bool mainMenuClosed = false;
-        [CommandMethod("McCloseMainMenu")]
-        public void McCloseMainMenu()
-        {
-            mainMenuClosed = true;
-            //ToolPaletteManager.Manager.Schemes[0].UnloadCatalogs(CatalogTypeFlags.);
+        //private static bool mainMenuClosed = false;
+        //[CommandMethod("McCloseMainMenu")]
+        //public void McCloseMainMenu()
+        //{
+        //    mainMenuClosed = true;
+        //    //ToolPaletteManager.Manager.Schemes[0].UnloadCatalogs(CatalogTypeFlags.);
 
-        }
-
+        //}
 
         private static AcadPopupMenu customMainMenuBiz = null;
+        
         [CommandMethod("McCustomMainMenuBizShow")]
         public void McCustomMainMenuBizShow()
         {
-            AcadApplication acadApp = Application.AcadApplication as AcadApplication;
+            //AcadApp.ActiveDocument.SendCommand("MENUBAR 1 ");
 
-            acadApp.ActiveDocument.SendCommand("MENUBAR 1 ");
+            string menuName = "自定义操作菜单";
+            foreach (AcadPopupMenu acadPopupMenu in AcadApp.MenuGroups.Item(0).Menus)
+            {
+                if (menuName.Equals(acadPopupMenu.Name))
+                {
+                    if (!acadPopupMenu.OnMenuBar)
+                        acadPopupMenu.InsertInMenuBar(AcadApp.MenuGroups.Item(0).Menus.Count);
+                    return;
+                }
+            }
 
             // 创建菜单
-            if (customMainMenuBiz == null)
-            {
-                customMainMenuBiz = acadApp.MenuGroups.Item(0).Menus.Add("CAD操作菜单");
+            AcadPopupMenu customMainMenuBiz = customMainMenuBiz = AcadApp.MenuGroups.Item(0).Menus.Add(menuName);
 
-                customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "画线", "McNewLine ");
-                customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "画圆", "McNewCircle ");
-                customMainMenuBiz.AddSeparator(customMainMenuBiz.Count);
-                //CAD 界面切换
-                customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "CAD 界面切换", "McUiSwitch ");
+            customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "画线", "McNewLine ");
+            customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "画圆", "McNewCircle ");
+            customMainMenuBiz.AddSeparator(customMainMenuBiz.Count);
+            //CAD 界面切换
+            customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "CAD 界面切换", "McUiSwitch ");
 
-                customMainMenuBiz.AddSeparator(customMainMenuBiz.Count);
-                AcadPopupMenu subMenu = customMainMenuBiz.AddSubMenu(customMainMenuBiz.Count, "Menu3子菜单");
-                subMenu.AddMenuItem(customMainMenuBiz.Count, "Cricle", "circle ");
-                customMainMenuBiz.AddSeparator(customMainMenuBiz.Count);
-                customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "Menu4", "rectangle ");
-            }
+            customMainMenuBiz.AddSeparator(customMainMenuBiz.Count);
+            AcadPopupMenu subMenu = customMainMenuBiz.AddSubMenu(customMainMenuBiz.Count, "Test 子菜单");
+            subMenu.AddMenuItem(customMainMenuBiz.Count, "Cricle", "circle ");
+            customMainMenuBiz.AddSeparator(customMainMenuBiz.Count);
+            customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "Menu4", "rectangle ");
 
-            // 菜单是否显示
-            bool isShowd = false;
-            foreach (AcadPopupMenu menu in acadApp.MenuBar)
-            {
-                if (menu == customMainMenuBiz)
-                {
-                    isShowd = true;
-                    break;
-                }
-                else
-                {
-                    //其他自带菜单
-                    if (menu.OnMenuBar)
-                    {
-                        menu.RemoveFromMenuBar();
-                    }
-                }
-            }
-
-            // 显示菜单
-            if (!isShowd && customMainMenuBiz!=null && !customMainMenuBiz.OnMenuBar)
-            {
-                customMainMenuBiz.InsertInMenuBar(acadApp.MenuBar.Count);
-            }
+            customMainMenuBiz.InsertInMenuBar(AcadApp.MenuGroups.Item(0).Menus.Count);
         }
 
         [CommandMethod("McCustomMainMenuBizHide")]
         public void McCustomMainMenuBizHide()
         {
-            if (customMainMenuBiz != null && customMainMenuBiz.OnMenuBar)
+            string menuName = "自定义操作菜单";
+            foreach (AcadPopupMenu acadPopupMenu in AcadApp.MenuGroups.Item(0).Menus)
             {
-                customMainMenuBiz.RemoveFromMenuBar();
+                if (menuName.Equals(acadPopupMenu.Name))
+                {
+                    if (!acadPopupMenu.OnMenuBar)
+                        acadPopupMenu.InsertInMenuBar(AcadApp.MenuGroups.Item(0).Menus.Count);
+                    return;
+                }
             }
         }
-            
-        private static AcadPopupMenu customMainMenuSwitch = null;
 
         [CommandMethod("McCustomMainMenuSwitchShow")]
         public void McCustomMainMenuSwitchShow()
         {
-            AcadApplication acadApp = Application.AcadApplication as AcadApplication;
-            acadApp.ActiveDocument.SendCommand("MENUBAR 1 ");
+            //AcadApp.ActiveDocument.SendCommand("MENUBAR 1 ");
+            //Document doc = Application.DocumentManager.MdiActiveDocument;
+            //doc.SendStringToExecute("MENUBAR 1 ", false,false, false);
 
-            // 创建菜单
-            if (customMainMenuSwitch == null)
+            string menuName = "梦诚菜单";
+            foreach (AcadPopupMenu acadPopupMenu in AcadApp.MenuGroups.Item(0).Menus)
             {
-                customMainMenuSwitch = acadApp.MenuGroups.Item(0).Menus.Add("梦诚菜单");
-                //CAD 界面切换
-                customMainMenuSwitch.AddMenuItem(customMainMenuBiz.Count, "CAD 界面切换", "McUiSwitch ");
-            }
-
-            // 菜单是否显示
-            bool isShowd = false;
-            foreach (AcadPopupMenu menu in acadApp.MenuBar)
-            {
-                if (menu == customMainMenuSwitch)
+                if (menuName.Equals(acadPopupMenu.Name))
                 {
-                    isShowd = true;
-                    break;
+                    if(!acadPopupMenu.OnMenuBar)
+                        acadPopupMenu.InsertInMenuBar(AcadApp.MenuGroups.Item(0).Menus.Count);
+                    return;
                 }
             }
 
-            // 显示菜单
-            if (!isShowd && customMainMenuSwitch != null && !customMainMenuSwitch.OnMenuBar)
-            {
-                customMainMenuSwitch.InsertInMenuBar(acadApp.MenuBar.Count);
-            }
-    }
+            // 创建菜单
+            AcadPopupMenu customMainMenuSwitch = AcadApp.MenuGroups.Item(0).Menus.Add(menuName);
+            //CAD 界面切换
+            customMainMenuSwitch.AddMenuItem(0, "CAD 界面切换", "McUiSwitch ");
+            customMainMenuSwitch.InsertInMenuBar(AcadApp.MenuGroups.Item(0).Menus.Count);
+        }
 
-        [CommandMethod("McCustomMainMenuSwitchHide")]
-        public void McCustomMainMenuSwitchHide()
-        {
-            if (customMainMenuSwitch != null && customMainMenuSwitch.OnMenuBar)
-            {
-                customMainMenuSwitch.RemoveFromMenuBar();
-            }
-    }
-
-        private static bool fileTabClosed = false;
         [CommandMethod("McCloseFileTabOnTop")]
         public void McCloseFileTabOnTop()
         {
-            fileTabClosed = true;
             Commands.CloseFileTab();
         }
 
         [CommandMethod("McCloseFileTabOnTopUn")]
         public void McCloseFileTabOnTopUn()
         {
-            if(fileTabClosed)
-                Commands.DisplayFileTab();
+             Commands.DisplayFileTab();
         }
 
-        private static bool ribbonClosed = false;
         [CommandMethod("McCloseRibbon")]
         public void McCloseRibbon()
         {
             if (RibbonServices.RibbonPaletteSet != null)
             {
-                ribbonClosed = true;
                 Commands.RibbonClose();
             }
         }
@@ -935,10 +1001,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         [CommandMethod("McCloseRibbonUn")]
         public void McCloseRibbonUn()
         {
-            if (ribbonClosed)
-            {
-                Commands.Ribbon();
-            }
+            Commands.Ribbon();
         }
 
         private static string cadWorkspaceName = null;
@@ -979,73 +1042,6 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
         }
 
-        //private void LoadMyCui(string cuiFile)
-        //{
-        //    Autodesk.AutoCAD.ApplicationServices.Document doc =
-        //        Application.DocumentManager.MdiActiveDocument;
-
-        //    object oldCmdEcho =
-        //        Application.GetSystemVariable("CMDECHO");
-        //    object oldFileDia =
-        //        Application.GetSystemVariable("FILEDIA");
-
-        //    Application.SetSystemVariable("CMDECHO", 0);
-        //    Application.SetSystemVariable("FILEDIA", 0);
-
-        //    doc.SendStringToExecute(
-        //        "_.cuiload "
-        //        + cuiFile
-        //        + " ",
-        //        false, false, false
-        //    );
-        //    doc.SendStringToExecute(
-        //        "(setvar \"FILEDIA\" "
-        //        + oldFileDia.ToString()
-        //        + ")(princ) ",
-        //        false, false, false
-        //    );
-        //    doc.SendStringToExecute(
-        //        "(setvar \"CMDECHO\" "
-        //        + oldCmdEcho.ToString()
-        //        + ")(princ) ",
-        //        false, false, false
-        //    );
-
-        //}
-
-
-        //public static string AssemblyDirectory
-        //{
-        //    get
-        //    {
-        //        string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-        //        UriBuilder uri = new UriBuilder(codeBase);
-        //        string path = Uri.UnescapeDataString(uri.Path);
-        //        return Path.GetDirectoryName(path);
-        //    }
-        //}
-
-        //private static void resetProfileInRegistry()
-        //{
-        //    IAcadPreferences acadPreferences = (IAcadPreferences)Application.Preferences;
-        //    object profileNames;
-        //    acadPreferences.Profiles.GetAllProfileNames(out profileNames);
-        //    IList profileNameList = (IList)profileNames;
-
-        //    if (PROFILE_MC2020.Equals(acadPreferences.Profiles.ActiveProfile))
-        //    {
-        //        foreach (var o in profileNameList)
-        //        {
-        //            string s = o.ToString();
-        //            if (!PROFILE_MC2020.Equals(s,StringComparison.CurrentCultureIgnoreCase))
-        //            {
-        //                Application.SetSystemVariable("CPROFILE", s); //报错，可能是只读的
-        //            }
-        //        }
-                
-        //    }
-        //}
-
         private const string PROFILE_MC2020 = "MC2020";
 
         private static void resetProfileInRegistry()
@@ -1071,7 +1067,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         }
 
         /// <summary>
-        /// 使用新菜单
+        /// 使用新配置
         /// </summary>
         [CommandMethod("McSetActiveProfile")]
         public void McSetActiveProfile()
@@ -1079,7 +1075,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             IAcadPreferences acadPreferences = (IAcadPreferences)Application.Preferences;
 
             if (!PROFILE_MC2020.Equals(acadPreferences.Profiles.ActiveProfile,
-                StringComparison.CurrentCultureIgnoreCase))
+                StringComparison.CurrentCultureIgnoreCase)) //当前配置不是 MC2020 的话
             {
                 object profileNames;
                 acadPreferences.Profiles.GetAllProfileNames(out profileNames);
@@ -1101,44 +1097,83 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                     String profileRegFile = Path.Combine(dir, PROFILE_MC2020 + ".arg");
                     acadPreferences.Profiles.ImportProfile(PROFILE_MC2020, profileRegFile, true);
                 }
-
-                acadPreferences.Profiles.ActiveProfile = PROFILE_MC2020;
+                else
+                {
+                    acadPreferences.Profiles.ActiveProfile = PROFILE_MC2020;
+                }
             }
 
             resetProfileInRegistry(); //注册表中记录的值重置为默认配置文件，AutoCAD 独立启动时仍可使用默认配置文件
         }
 
-        [CommandMethod("McCustomMainMenu")]
-        public void McCustomMainMenu()
+        [CommandMethod("McSetActiveProfileUn")]
+        public void McSetActiveProfileUn()
         {
-            AcadApplication acadApp = (AcadApplication)Application.AcadApplication;
+            IAcadPreferences acadPreferences = (IAcadPreferences)Application.Preferences;
 
-            for (int i = 0; i < acadApp.MenuGroups.Item(0).Menus.Count; i++)
+            if (PROFILE_MC2020.Equals(acadPreferences.Profiles.ActiveProfile,
+                StringComparison.CurrentCultureIgnoreCase))
             {
-                acadApp.MenuGroups.Item(0).Menus.RemoveMenuFromMenuBar(i);
-            }
+                object profileNames;
+                acadPreferences.Profiles.GetAllProfileNames(out profileNames);
+                IList profileNameList = (IList)profileNames;
+                string foundS = null;
+                foreach (var o in profileNameList)
+                {
+                    string s = o.ToString();
+                    if (!PROFILE_MC2020.Equals(s, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        foundS  = s;
+                        break;
+                    }
+                }
 
+                if (foundS!=null)
+                {
+                    acadPreferences.Profiles.ActiveProfile = foundS;
+                }
+
+                //TODO
+                //其他情况，需要逐个部分的处理
+            }
+        }
+
+        [CommandMethod("McCustomCui")]
+        public void McCustomCui()
+        {
             bool loaded = false;
 
-            for (int i = 0; i < acadApp.MenuGroups.Count; i++)
+            for (int i = 0; i < AcadApp.MenuGroups.Count; i++)
             {
-                
-                if (MG_NAME_MCMENU.Equals(acadApp.MenuGroups.Item(i).Name.ToUpper()))
+
+                if (MG_NAME_MCMENU.Equals(AcadApp.MenuGroups.Item(i).Name.ToUpper()))
                 {
                     loaded = true;
                 }
                 else
                 {
-                    acadApp.MenuGroups.Item(i).Unload();
+                    AcadApp.MenuGroups.Item(i).Unload();
                 }
             }
 
             if (!loaded)
-            {            
+            {
                 string dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                 //保存的CUI文件名（从CAD2010开始，后缀改为了cuix）
-                string strCuiFileName = dir + "\\" + MG_NAME_MCMENU +".cuix";
+                //保存的CUI文件名（从CAD2010开始，后缀改为了cuix）
+                string strCuiFileName = dir + "\\" + MG_NAME_MCMENU + ".cuix";
                 Application.LoadMainMenu(strCuiFileName);
+            }
+        }
+
+        [CommandMethod("McCustomMainMenuClear")]
+        public void McCustomMainMenuClear()
+        {
+            foreach (AcadPopupMenu acadPopupMenu in AcadApp.MenuGroups.Item(0).Menus)
+            {
+                if (acadPopupMenu.OnMenuBar)
+                {
+                    acadPopupMenu.RemoveFromMenuBar();
+                }
             }
         }
 

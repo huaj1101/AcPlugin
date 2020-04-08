@@ -19,21 +19,12 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
 
         public static void showSelectedObjectsInfo(String info)
         {
-            if (myWindow != null)
-            {
-                myWindow.showSelectedObjectsInfo(info);
-
-            }
+            MyTopWindow.showSelectedObjectsInfo(info);
         }
 
-        private static MyTopWindow myWindow=null;
         private void button1_Click(object sender, EventArgs e)
         {
-            if (myWindow == null)
-            {
-                myWindow = new MyTopWindow();
-            }
-            Application.ShowModelessDialog(myWindow);
+            MyTopWindow.showModeless();
         }
 
         private static MyModalDialog myModelDialog = null;
@@ -49,7 +40,17 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
  
         private void button3_Click(object sender, EventArgs e)
         {
-   
+            LineCommandHandler.NewLine();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            CircleCommandHandler.NewCircle();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            new UiManager().McUiSwitch();
         }
     }
 }
