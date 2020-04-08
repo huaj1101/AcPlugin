@@ -493,19 +493,33 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                 return;
             }
             myPaletteSetTop = new PaletteSet("test PaletteSet top");
-            var s = new System.Drawing.Size(100, 100);
+            var s = new System.Drawing.Size(1920, 100);
             myPaletteSetTop.Size = s;
             myPaletteSetTop.MinimumSize = s;
             dockBarTop = new MyDockBarTop();
             myPaletteSetTop.Add("4", dockBarTop);
             myPaletteSetTop.TitleBarLocation = PaletteSetTitleBarLocation.Left;
+            myPaletteSetTop.Style = PaletteSetStyles.NoTitleBar;
+            
             myPaletteSetTop.Visible = true;
 
             // Visible 设置之后再设置尺寸和停靠
             myPaletteSetTop.Size = s;
             myPaletteSetTop.MinimumSize = s;
             myPaletteSetTop.DockEnabled = DockSides.Top;
-            myPaletteSetTop.Dock = DockSides.Top; 
+            myPaletteSetTop.Dock = DockSides.Top;
+            myPaletteSetTop.Style = PaletteSetStyles.NoTitleBar;
+
+            myPaletteSetTop.RolledUp = false;
+            myPaletteSetTop.SizeChanged += new PaletteSetSizeEventHandler((sender, e) =>
+            {
+                if (e.Height != 100)
+                {
+                    myPaletteSetTop.Size = new System.Drawing.Size(1920,100);
+                    myPaletteSetTop.Dock = DockSides.Top;
+                }
+                    
+            });
         }
 
         [CommandMethod("McPaletteSetTopUn")]
@@ -1154,8 +1168,6 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         [CommandMethod("McCustomMainMenuClear")]
         public void McCustomMainMenuClear()
         {
-            
-
             foreach (AcadPopupMenu acadPopupMenu in AcadApp.MenuGroups.Item(0).Menus)
             {
                 if (acadPopupMenu.OnMenuBar)
