@@ -25,6 +25,36 @@ namespace AcCommandTest
         /// </summary>
         public double XorY { get { return _xory; } }
 
+        public Point2d _start;
+        /// <summary>
+        /// 开始位置
+        /// </summary>
+        public Point2d Start { get { return _start; } }
+
+        public Point2d _end;
+        /// <summary>
+        /// 结束位置
+        /// </summary>
+        public Point2d End { get { return _end; } }
+
+        /// <summary>
+        /// 长度
+        /// </summary>
+        public double Length
+        {
+            get
+            {
+                if (_direction == AcTableLineDirection.H)
+                {
+                    return End.X - Start.X;
+                }
+                else
+                {
+                    return Start.Y - End.Y;
+                }
+            }
+        }
+
         /// <summary>
         /// 是否接受一个线段，即该线段是否可以归到这条格线中
         /// 这里默认线段已经是正交的，应在调用之前做好判断
@@ -36,7 +66,7 @@ namespace AcCommandTest
         {
             AcTableLineDirection direction;
             double xory = 0;
-            if (CommandUtils.DoubleValueCompare(pt1.X, pt2.X) == 0)
+            if (CommandUtils.Compare(pt1.X, pt2.X) == 0)
             {
                 direction = AcTableLineDirection.V;
                 xory = pt1.X;
@@ -46,7 +76,7 @@ namespace AcCommandTest
                 direction = AcTableLineDirection.H;
                 xory = pt1.Y;
             }
-            return direction == _direction && (_segments.Count == 0 || CommandUtils.DoubleValueCompare(xory, _xory) == 0);
+            return direction == _direction && (_segments.Count == 0 || CommandUtils.Compare(xory, _xory) == 0);
         }
 
         /// <summary>
@@ -58,7 +88,7 @@ namespace AcCommandTest
         public void AddSegment(Point2d pt1, Point2d pt2)
         {
             Point2d start, end;
-            if (pt1.Y > pt2.Y || pt1.X < pt2.X)
+            if (CommandUtils.Compare(pt1.Y, pt2.Y) > 0 || CommandUtils.Compare(pt1.X, pt2.X) < 0)
             {
                 start = pt1;
                 end = pt2;
@@ -90,6 +120,14 @@ namespace AcCommandTest
                 {
                     _segments.Add(new AcLineSegment(start, end));
                 }
+                if (_start.X > start.X)
+                {
+                    _start = start;
+                }
+                if (_end.X < end.X)
+                {
+                    _end = end;
+                }
             }
             else
             {
@@ -112,6 +150,14 @@ namespace AcCommandTest
                 {
                     _segments.Add(new AcLineSegment(start, end));
                 }
+                if (_start.Y < start.Y)
+                {
+                    _start = start;
+                }
+                if (_end.Y > end.Y)
+                {
+                    _end = end;
+                }
             }
         }
 
@@ -126,7 +172,7 @@ namespace AcCommandTest
             {
                 if (_direction == AcTableLineDirection.H)
                 {
-                    if (seg.Start.X <= xory && seg.End.X >= xory) 
+                    if (seg.Start.X <= xory && seg.End.X >= xory)
                     {
                         return true;
                     }
@@ -142,11 +188,6 @@ namespace AcCommandTest
             return false;
         }
 
-        public AcTableLine(AcTableLineDirection direction)
-        {
-            _direction = direction;
-        }
-
         /// <summary>
         /// 构造器
         /// 这里默认线段已经是正交的，应在调用之前做好判断
@@ -155,7 +196,7 @@ namespace AcCommandTest
         /// <param name="end"></param>
         public AcTableLine(Point2d pt1, Point2d pt2)
         {
-            if (CommandUtils.DoubleValueCompare(pt1.X, pt2.X) == 0)
+            if (CommandUtils.Compare(pt1.X, pt2.X) == 0)
             {
                 _direction = AcTableLineDirection.V;
                 _xory = pt1.X;
@@ -166,7 +207,7 @@ namespace AcCommandTest
                 _xory = pt2.Y;
             }
             Point2d start, end;
-            if (pt1.Y > pt2.Y || pt1.X < pt2.X)
+            if (CommandUtils.Compare(pt1.Y, pt2.Y) > 0 || CommandUtils.Compare(pt1.X, pt2.X) < 0)
             {
                 start = pt1;
                 end = pt2;
@@ -176,17 +217,22 @@ namespace AcCommandTest
                 start = pt2;
                 end = pt1;
             }
+            _start = start;
+            _end = end;
             _segments.Add(new AcLineSegment(start, end));
         }
 
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(_direction.ToString() + " ");
-            sb.Append(XorY.ToString() + " ");
+            sb.AppendLine("direction: " + _direction.ToString());
+            sb.AppendLine("xory: " + XorY.ToString());
+            sb.AppendLine("Start: " + string.Format("( {0:f1}, {1:f1} )", Start.X, Start.Y));
+            sb.AppendLine("End: " + string.Format("( {0:f1}, {1:f1} )", End.X, End.Y));
+            sb.AppendLine("Segments: ");
             foreach (var seg in _segments)
             {
-                sb.Append(string.Format("({0:f1},{1:f1})-({2:f1},{3:f1})", seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y));
+                sb.AppendLine(string.Format("    ( {0:f1}, {1:f1} ) - ( {2:f1}, {3:f1} )", seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y));
             }
             return string.Format(sb.ToString());
         }

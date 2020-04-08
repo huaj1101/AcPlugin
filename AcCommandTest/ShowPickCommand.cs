@@ -47,7 +47,14 @@ namespace AcCommandTest
                         if (so.ObjectId.ObjectClass.DxfName == "TEXT")
                         {
                             DBText text = (DBText)so.ObjectId.GetObject(OpenMode.ForRead);
-                            sb.Append(text.TextString);
+                            sb.AppendLine(text.TextString);
+                            string s = string.Format("( {0:f1}, {1:f1} ) ( {2:f1}, {3:f1} )", 
+                                text.GeometricExtents.MinPoint.X,
+                                text.GeometricExtents.MinPoint.Y,
+                                text.GeometricExtents.MaxPoint.X,
+                                text.GeometricExtents.MaxPoint.Y
+                                );
+                            sb.AppendLine(s);
                             //sb.Append(text.Position.ToString());
                         }
                         else if (so.ObjectId.ObjectClass.DxfName == "MTEXT")
@@ -55,6 +62,13 @@ namespace AcCommandTest
                             MText text = (MText)so.ObjectId.GetObject(OpenMode.ForRead);
                             sb.AppendLine(text.Contents);
                             sb.AppendLine(text.Text);
+                            string s = string.Format("( {0:f1}, {1:f1} ) ( {2:f1}, {3:f1} )",
+                                text.GeometricExtents.MinPoint.X,
+                                text.GeometricExtents.MinPoint.Y,
+                                text.GeometricExtents.MaxPoint.X,
+                                text.GeometricExtents.MaxPoint.Y
+                                );
+                            sb.AppendLine(s);
                             //sb.Append(text.Location.ToString());
                         }
                         else if (so.ObjectId.ObjectClass.DxfName == "LINE")

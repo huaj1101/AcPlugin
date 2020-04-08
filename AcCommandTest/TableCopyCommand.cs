@@ -44,22 +44,7 @@ namespace AcCommandTest
                         return;
                     }
                     SelectionSet sset = psr.Value;
-                    Table table = null;
-                    // 块类型的表格
-                    if (sset.Count == 1 && sset[0].ObjectId.ObjectClass.DxfName == "INSERT")
-                    {
-                        Entity entity = sset[0].ObjectId.GetObject(OpenMode.ForRead) as Entity;
-                        if (entity is BlockReference)
-                        {
-                            BlockReference br = entity as BlockReference;
-                            BlockTableRecord btr = br.BlockTableRecord.GetObject(OpenMode.ForRead) as BlockTableRecord;
-                            table = AcTableParser.ParseTable(btr);
-                        }
-                    }
-                    else
-                    {
-                        table = AcTableParser.ParseTable(sset.GetObjectIds());
-                    }
+                    Table table = AcTableParser.ParseTable(sset.GetObjectIds());
 
                     if (table == null || table.RowCount == 0)
                     {
@@ -74,7 +59,7 @@ namespace AcCommandTest
             }
             catch (System.Exception e)
             {
-                editor.WriteMessage(e.StackTrace);
+                editor.WriteMessage(e.ToString());
             }
         }
 
@@ -82,30 +67,36 @@ namespace AcCommandTest
         {
             using (ExcelPackage package = new ExcelPackage())
             {
-                var worksheet = package.Workbook.Worksheets.Add("sheet1");
+                var ws = package.Workbook.Worksheets.Add("sheet1");
                 for (int i = 0; i < table.RowCount; i++)
                 {
                     for (int j = 0; j < table.ColCount; j++)
                     {
                         if (table.Cells[i][j].Value != "")
                         {
-                            worksheet.Cells[i + 1, j + 1].Value = table.Cells[i][j].Value;
+                            ws.Cells[i + 1, j + 1].Value = table.Cells[i][j].Value;
                         }
                         if (table.Cells[i][j].CellType == TableCellType.MergedMaster)
                         {
-                            worksheet.Cells[i + 1, j + 1, i + table.Cells[i][j].RowSpan, j + table.Cells[i][j].ColSpan].Merge = true;
+                            ws.Cells[i + 1, j + 1, i + table.Cells[i][j].RowSpan, j + table.Cells[i][j].ColSpan].Merge = true;
                         }
                     }
                 }
-                worksheet.Cells[1, 1, table.RowCount, table.ColCount].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                worksheet.Cells[1, 1, table.RowCount, table.ColCount].Style.Border.Right.Style = ExcelBorderStyle.Thin;
-                worksheet.Cells[1, 1, table.RowCount, table.ColCount].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                worksheet.Cells[1, 1, table.RowCount, table.ColCount].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                worksheet.Cells[1, 1, table.RowCount, table.ColCount].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                worksheet.Cells[1, 1, table.RowCount, table.ColCount].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                worksheet.Cells[1, 1, table.RowCount, table.ColCount].Style.Font.Name = "仿宋";
-                worksheet.Cells[1, 1, table.RowCount, table.ColCount].Style.WrapText = true;
-                worksheet.Cells[1, 1, table.RowCount, table.ColCount].AutoFitColumns();
+
+                ws.Cells[1, 1, table.RowCount, table.ColCount].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                ws.Cells[1, 1, table.RowCount, table.ColCount].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                ws.Cells[1, 1, table.RowCount, table.ColCount].Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                ws.Cells[1, 1, table.RowCount, table.ColCount].Style.Border.Bottom.Style = ExcelBorderStyle.Thin; 
+                ws.Cells.Style.Font.Name = "仿宋";
+                ws.Cells.Style.Font.Size = 10;
+                ws.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;//水平居中
+                ws.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;//垂直居中
+                ws.Cells.AutoFitColumns();
+                ws.Cells.Style.WrapText = true;
+                for (int i = 1; i <= table.ColCount; i++)
+                {
+                    ws.Column(i).Width = ws.Column(i).Width * 0.88;
+                }
 
                 var dialog = new System.Windows.Forms.SaveFileDialog();
                 dialog.Filter = "Excel文件(*.xlsx)|*.xlsx";

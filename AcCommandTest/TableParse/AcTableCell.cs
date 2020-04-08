@@ -21,26 +21,31 @@ namespace AcCommandTest
         public AcTableLine BottomLine { get; set; }
         public List<AcText> Texts { get; set; }
         public TableCell InnerCell { get; set; }
-        private static Dictionary<string, string> _specials = new Dictionary<string, string>();
-        private static Regex _specialRegex;
+        private static Dictionary<string, string> _specialChars = new Dictionary<string, string>();
+        private static Dictionary<string, string> _specialStrs = new Dictionary<string, string>();
+        private static Regex _commonSpecialCharRegex;
 
         static AcTableCell()
         {
             //初始化特殊字符对照表
-            _specials["%%P"] = "±";
-            _specials["%%p"] = "±";
-            _specials["%%C"] = "φ";
-            _specials["%%c"] = "φ";
-            _specials["%%D"] = "°";
-            _specials["%%d"] = "°";
-            _specials["%%%"] = "%";
-            _specials["%%130"] = "φ";
-            _specials["%%131"] = "φ";
-            _specials["%%132"] = "φ";
-            _specials["%%133"] = "φ";
-            _specials["M3/"] = "m³";
-            _specials["m3/"] = "m³";
-            _specialRegex = new Regex(@"%%\d{3}");
+            _specialChars["%%P"] = "±";
+            _specialChars["%%p"] = "±";
+            _specialChars["%%C"] = "φ";
+            _specialChars["%%c"] = "φ";
+            _specialChars["%%D"] = "°";
+            _specialChars["%%d"] = "°";
+            _specialChars["%%%"] = "%";
+            _specialChars["%%130"] = "φ";
+            _specialChars["%%131"] = "φ";
+            _specialChars["%%132"] = "φ";
+            _specialChars["%%133"] = "φ";
+            _specialChars["m3/"] = "m³";
+            _commonSpecialCharRegex = new Regex(@"%%\d{3}");
+
+            _specialStrs["m ) 3"] = "m³)";
+            _specialStrs["m) 3"] = "m³)";
+            _specialStrs["m 3"] = "m³";
+            _specialStrs["m³ )"] = "m³)";
         }
 
         public AcTableCell()
@@ -63,7 +68,7 @@ namespace AcCommandTest
                 InnerCell.Value = ProcessSpecialText(Texts[0].Value);
                 return;
             }
-            Texts.Sort((text1, text2) => (int)(text1.Position.X - text2.Position.X + text2.Position.Y - text1.Position.Y));
+            Texts.Sort((text1, text2) => (int)((text1.Position.X - text2.Position.X + 2 * (text2.Position.Y - text1.Position.Y)) * 100));
             List<string> parts = new List<string>();
             foreach (AcText text in Texts)
             {
@@ -109,14 +114,22 @@ namespace AcCommandTest
             {
                 if (parts[i] != "")
                 {
-                    //判断是否需要加分隔
+                    //判断是否需要加换行
                     if (i > 0 && InnerCell.Value != "" && Texts[prevIndex].Position.Y - Texts[i].Position.Y > (Texts[i].Height + Texts[prevIndex].Height) / 2)
                     {
                         InnerCell.Value += "\n";
                     }
+                    else if (InnerCell.Value != "")
+                    {
+                        InnerCell.Value += " ";
+                    }
                     InnerCell.Value += parts[i];
                     prevIndex = i;
                 }
+            }
+            foreach (string key in _specialStrs.Keys)
+            {
+                InnerCell.Value = InnerCell.Value.Replace(key, _specialStrs[key]);
             }
         }
 
@@ -127,12 +140,12 @@ namespace AcCommandTest
         /// <returns></returns>
         private string ProcessSpecialText(string s)
         {
-            foreach (string key in _specials.Keys)
+            foreach (string key in _specialChars.Keys)
             {
-                s = s.Replace(key, _specials[key]);
+                s = s.Replace(key, _specialChars[key]);
             }
-            s = _specialRegex.Replace(s, "");
-            return s;
+            s = _commonSpecialCharRegex.Replace(s, "");
+            return s.Trim();
         }
     }
 }
