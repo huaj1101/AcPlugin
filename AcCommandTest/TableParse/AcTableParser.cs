@@ -86,6 +86,11 @@ namespace AcCommandTest
                     {
                         if (!_cells[i, j].RightLine.HasSegmentOn(_cells[i, j].Center.Y))
                         {
+                            //if (j + 1 == _colCount)
+                            //{
+                            //    System.Windows.Forms.MessageBox.Show(string.Format("{0:d},{1:d},{2:f},{3:s},{4:d}", 
+                            //        i, j, _cells[i, j].Center.Y, _cells[i, j].RightLine.ToString(), _tableVLines.Count));
+                            //}
                             _cells[i, j].InnerCell.CellType = TableCellType.MergedMaster;
                             _cells[i, j].InnerCell.ColSpan = 2;
                             _cells[i, j + 1].InnerCell.MasterCell = _cells[i, j].InnerCell;
@@ -140,6 +145,25 @@ namespace AcCommandTest
             foreach (AcTableCell cell in _cells)
             {
                 cell.CalcCellValue();
+            }
+            //处理合并单元格的值，原则是值全部归入主格，从格设置为空
+            foreach (AcTableCell cell in _cells)
+            {
+                if (cell.InnerCell.CellType == TableCellType.MergedSlave && cell.InnerCell.Value != "")
+                {
+                    if (cell.InnerCell.Col == cell.InnerCell.MasterCell.Col)
+                    {
+                        cell.InnerCell.MasterCell.Value = cell.InnerCell.MasterCell.Value == "" ? cell.InnerCell.Value :
+                            cell.InnerCell.MasterCell.Value + "\n" + cell.InnerCell.Value;
+                    }
+                    else
+                    {
+                        cell.InnerCell.MasterCell.Value = cell.InnerCell.MasterCell.Value == "" ? cell.InnerCell.Value :
+                            cell.InnerCell.MasterCell.Value + " " + cell.InnerCell.Value;
+
+                    }
+                    cell.InnerCell.Value = "";
+                }
             }
         }
 

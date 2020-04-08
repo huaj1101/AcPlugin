@@ -76,13 +76,19 @@ namespace AcCommandTest
                     _xory = start.Y;
                     _segments.Add(new AcLineSegment(start, end));
                 }
+                bool add = false;
                 for (int i = 0; i < _segments.Count; i++)
                 {
                     if (start.X < _segments[i].Start.X)
                     {
                         _segments.Insert(i, new AcLineSegment(start, end));
+                        add = true;
                         break;
                     }
+                }
+                if (!add)
+                {
+                    _segments.Add(new AcLineSegment(start, end));
                 }
             }
             else
@@ -92,13 +98,19 @@ namespace AcCommandTest
                     _xory = start.X;
                     _segments.Add(new AcLineSegment(start, end));
                 }
+                bool add = false;
                 for (int i = 0; i < _segments.Count; i++)
                 {
                     if (start.Y > _segments[i].Start.Y)
                     {
                         _segments.Insert(i, new AcLineSegment(start, end));
+                        add = true;
                         break;
                     }
+                }
+                if (!add)
+                {
+                    _segments.Add(new AcLineSegment(start, end));
                 }
             }
         }
@@ -165,6 +177,18 @@ namespace AcCommandTest
                 end = pt1;
             }
             _segments.Add(new AcLineSegment(start, end));
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(_direction.ToString() + " ");
+            sb.Append(XorY.ToString() + " ");
+            foreach (var seg in _segments)
+            {
+                sb.Append(string.Format("({0:f1},{1:f1})-({2:f1},{3:f1})", seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y));
+            }
+            return string.Format(sb.ToString());
         }
     }
 }
