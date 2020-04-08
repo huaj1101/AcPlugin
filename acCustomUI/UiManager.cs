@@ -906,7 +906,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
 
             // 创建菜单
-            AcadPopupMenu customMainMenuBiz = customMainMenuBiz = AcadApp.MenuGroups.Item(0).Menus.Add("CAD操作菜单");
+            AcadPopupMenu customMainMenuBiz = customMainMenuBiz = AcadApp.MenuGroups.Item(0).Menus.Add(menuName);
 
             customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "画线", "McNewLine ");
             customMainMenuBiz.AddMenuItem(customMainMenuBiz.Count, "画圆", "McNewCircle ");
