@@ -38,17 +38,18 @@
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox1.Size = new System.Drawing.Size(385, 338);
+            this.textBox1.Size = new System.Drawing.Size(599, 478);
             this.textBox1.TabIndex = 0;
             // 
             // MyTopWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(385, 338);
+            this.ClientSize = new System.Drawing.Size(599, 478);
             this.Controls.Add(this.textBox1);
             this.Name = "MyTopWindow";
             this.Text = "MyTopWindow";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MyTopWindow_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 

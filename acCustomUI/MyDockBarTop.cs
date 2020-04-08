@@ -15,5 +15,10 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         {
             InitializeComponent();
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            new UiManager().McUiSwitch();
+        }
     }
 }

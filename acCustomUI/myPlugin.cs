@@ -1,12 +1,15 @@
 ﻿// (C) Copyright 2020 by  
 //
 using System;
+using System.Collections.Generic;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Interop;
 using Autodesk.AutoCAD.Ribbon;
+using Autodesk.AutoCAD.Windows;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
 
 // This line is not mandatory, but improves loading performances
@@ -20,6 +23,8 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
     // then you should remove this class.
     public class MyPlugin : IExtensionApplication
     {
+
+        static UiManager ui = new UiManager();
 
         void IExtensionApplication.Initialize()
         {
@@ -41,99 +46,14 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             // as well as some of the existing AutoCAD managed apps.
 
             // Initialize your plug-in application here
-
-            Editor editor=null;
-
-            try
-            {
-                ////MessageBox.Show("插件已加载");
-                ///
-                editor = Application.DocumentManager.MdiActiveDocument.Editor;
-                editor.WriteMessage("MyPlugin插件初始化\n");
-
-                //TODO 处理工作区的 tab - 应不可关闭
-
-                //TODO 处理左上角图标和主菜单
-                //MyCommands.ZsyMainMenu();
-
-
-                //把工作空间设置为 “草图与注释”,这步必须最先处理
-                MyCommands.ZsyWorkspace();
-                editor.WriteMessage("0  MyCommands.ZsyWorkspace()\n");
-
-                //无选定对象时的右键菜单
-                MyCommands.ZsyAddDefaultContextMenuItem();
-                editor.WriteMessage("1 完成 MyCommands.ZsyAddDefaultContextMenuItem()\n");
-
-                //有选定对象时的右键菜单
-                MyCommands.ZsyAddObjectContextMenuItem();
-                editor.WriteMessage("2  MyCommands.ZsyAddObjectContextMenuItem()\n");
-
-
-                //顶部Ribbon 菜单区域，AutoCAD自带tab隐藏，添加自定义tab、按钮
-                MyCommands.ZsyRibbonTab();
-                editor.WriteMessage("3  MyCommands.ZsyRibbonTab()\n");
-
-                //关闭自带的所有 palette
-                MyCommands.ZsyPaletteSetClose();
-
-                //上下左右添加自定义停靠区域
-                MyCommands.ZsyPaletteSetLeft(); //包含弹出模态窗口、非模态置顶窗口
-                editor.WriteMessage("4  MyCommands.ZsyPaletteSetLeft()\n");
-                MyCommands.ZsyPaletteSetTop();
-                editor.WriteMessage("5  MyCommands.ZsyPaletteSetTop()\n");
-                MyCommands.ZsyPaletteSetBottom();
-                editor.WriteMessage("6  MyCommands.ZsyPaletteSetBottom()\n");
-                MyCommands.ZsyPaletteSetRight(); //WPF UserControl
-                editor.WriteMessage("7  MyCommands.ZsyPaletteSetRight()\n");
-
-                //监听选定事件，选定对象id 在 非模态置顶窗口中显示
-                MyEvent.AddSelectChangeEvent();
-                editor.WriteMessage("8  MyEvent.AddSelectChangeEvent()\n");
-
-                //隐藏AutoCAD自带 toolbar，添加自定义toolbar
-                MyCommands.ZsyToolbar();
-                editor.WriteMessage("9  MyCommands.ZsyToolbar()\n");
-
-                //隐藏绘图区域顶部的“文件选项卡”tab
-                MyCommands.ZsyCloseFileTabOnTop();
-                editor.WriteMessage("10  MyCommands.ZsyCloseFileTabOnTop()\n");
-
-                bool hideAllRibbon = true;
-                if (hideAllRibbon)
-                {
-                    //彻底隐藏 Robbon 菜单
-                    MyCommands.ZsyCloseRibbon();
-                    editor.WriteMessage("11  MyCommands.ZsyCloseRibbon()\n");
-                }
-
-                editor.WriteMessage("12  Succeed！\n");
-
-            }
-            catch (System.Exception ex)
-            {
-                if (ex is Exception)
-                {
-                    if (null != editor )
-                    {
-                        editor.WriteMessage("System.Exception\n" + ex.Message + "\n");
-                    }
-                }
-                else
-                {
-                    if (null != editor)
-                    {
-                        editor.WriteMessage("AutoCAD runtime Exception\n" + ex.Message + "\n");
-                    }
-                }
-            }
+            ui.McLoad();
         }
 
         void IExtensionApplication.Terminate()
         {
             // Do plug-in application clean up here
+            ui.McUnLoad(true);
         }
-
     }
 
 }

@@ -16,6 +16,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
 {
     public class CircleCommandHandler : ICommand
     {
+        /// <inheritdoc />
         public event EventHandler CanExecuteChanged;
 
         public bool CanExecute(object parameter)
@@ -23,8 +24,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             return true;
         }
 
-        [CommandMethod("ZsyNewCircle")]
-        public static void ZsyNewCircle()
+        public static void NewCircle()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
@@ -67,7 +67,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             RibbonButton button = parameter as RibbonButton;
             if (button != null)
             {
-                ZsyNewCircle();
+                NewCircle();
             }
         }
     }

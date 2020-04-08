@@ -127,11 +127,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LineCommandHandler.cs" />
-    <Compile Include="myCommands.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>myCommands.resx</DependentUpon>
-    </Compile>
+    <Compile Include="UiManager.cs" />
     <Compile Include="MyDockBarBottom.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -158,7 +154,6 @@
       <DependentUpon>MyModalDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="myPlugin.cs" />
-    <Compile Include="myCommands.cs" />
     <Compile Include="MyTopWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -178,11 +173,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="myCommands.resx">
-      <DependentUpon>myCommands.cs</DependentUpon>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>myCommands.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Include="MyDockBarBottom.resx">
       <DependentUpon>MyDockBarBottom.cs</DependentUpon>
     </EmbeddedResource>
@@ -191,6 +181,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MyDockBarTop.resx">
       <DependentUpon>MyDockBarTop.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MyModalDialog.resx">
+      <DependentUpon>MyModalDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyTopWindow.resx">
       <DependentUpon>MyTopWindow.cs</DependentUpon>
@@ -228,6 +221,12 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <None Include="MC2020.arg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="McMenu.CUIX">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="toolbutton1.bmp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -239,6 +238,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="toolbutton3.bmp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="toolbutton4.bmp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

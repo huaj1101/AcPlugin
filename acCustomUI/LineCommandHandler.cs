@@ -23,8 +23,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             return true;
         }
 
-        [CommandMethod("ZsyNewLine")]
-        public static void ZsyNewLine()
+        public static void NewLine()
         {
             // 获取当前文档和数据库
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
@@ -61,7 +60,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             RibbonButton button = parameter as RibbonButton;
             if (button != null)
             {
-                ZsyNewLine();
+                NewLine();
             }
         }
     }
