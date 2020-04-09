@@ -92,6 +92,7 @@ namespace AcCommandTest
                 ws.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;//水平居中
                 ws.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;//垂直居中
                 ws.Cells.AutoFitColumns();
+                
                 ws.Cells.Style.WrapText = true;
                 for (int i = 1; i <= table.ColCount; i++)
                 {

@@ -40,12 +40,16 @@ namespace AcCommandTest
             _specialChars["%%132"] = "φ";
             _specialChars["%%133"] = "φ";
             _specialChars["m3/"] = "m³";
+            _specialChars["m2/"] = "㎡";
             _commonSpecialCharRegex = new Regex(@"%%\d{3}");
 
             _specialStrs["m ) 3"] = "m³)";
             _specialStrs["m) 3"] = "m³)";
             _specialStrs["m 3"] = "m³";
             _specialStrs["m³ )"] = "m³)";
+            _specialStrs["㎡ )"] = "㎡)";
+            _specialStrs["' ' '"] = "°'\"";
+            _specialStrs["' \""] = "°'\"";
         }
 
         public AcTableCell()
@@ -74,9 +78,10 @@ namespace AcCommandTest
             {
                 parts.Add(ProcessSpecialText(text.Value));
             }
-            //特殊处理㎡和m³，在有的表格中会分开两个文本对象
+            //处理特殊情况
             for (int i = 0; i < parts.Count; i++)
             {
+                //特殊处理㎡和m³，在有的表格中会分开两个文本对象
                 if (parts[i] == "2" || parts[i] == "3")
                 {
                     for (int j = 0; j < parts.Count; j++)
@@ -124,7 +129,15 @@ namespace AcCommandTest
                         InnerCell.Value += " ";
                     }
                     InnerCell.Value += parts[i];
-                    prevIndex = i;
+                    //特殊处理m³和㎡的换行问题
+                    if ((parts[i] == "2" || parts[i] == "3") && i > 0)
+                    {
+                        prevIndex = i - 1;
+                    }
+                    else
+                    {
+                        prevIndex = i;
+                    }
                 }
             }
             foreach (string key in _specialStrs.Keys)

@@ -40,8 +40,8 @@ namespace AcCommandTest
         /// <returns></returns>
         public static bool PointInRect(Point2d point, Point2d rectTopLeft, Point2d rectBottomRight)
         {
-            return point.X > rectTopLeft.X && point.X < rectBottomRight.X
-                && point.Y < rectTopLeft.Y && point.Y > rectBottomRight.Y;
+            return point.X >= rectTopLeft.X && point.X <= rectBottomRight.X
+                && point.Y <= rectTopLeft.Y && point.Y >= rectBottomRight.Y;
         }
 
         /// <summary>

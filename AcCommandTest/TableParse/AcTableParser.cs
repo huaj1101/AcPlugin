@@ -45,7 +45,6 @@ namespace AcCommandTest
             ParseObjects(objects);
             SortObjects();
             CleanLines();
-            // System.Windows.Forms.MessageBox.Show(string.Format("{0:d}, {1:d}", _tableHLines.Count, _tableVLines.Count));
             BuildCells();
             PutTextToCells();
             CalcCellMerge();
@@ -86,8 +85,6 @@ namespace AcCommandTest
                 }
                 preHLine = hLine;
             }
-            //System.Windows.Forms.MessageBox.Show(_tableHLines[0].ToString());
-            //System.Windows.Forms.MessageBox.Show(_tableHLines.Last().ToString());
             AcTableLine preVLine = null;
             foreach (AcTableLine vLine in _tableVLines.ToArray())
             {
@@ -108,7 +105,8 @@ namespace AcCommandTest
                 {
                     _tableVLines.Remove(vLine);
                 }
-                else if (preVLine != null && vLine.XorY - preVLine.XorY <= 1) //表格容错，挨的太近的格线，删除掉一根（短的）
+
+                else if (preVLine != null && vLine.XorY - preVLine.XorY < 1) //表格容错，挨的太近的格线，删除掉一根（短的）
                 {
                     _tableVLines.Remove(preVLine.Length > vLine.Length ? vLine : preVLine);
                 }
@@ -283,9 +281,8 @@ namespace AcCommandTest
         /// 识别选中的对象，将其变为内部结构
         /// </summary>
         /// <param name="objects"></param>
-        private void ParseObjects(IEnumerable objects, double baseX = 0, double baseY = 0, double xScale = 1, double yScale = 1, bool embeded = false)
+        private void ParseObjects(IEnumerable objects, double baseX = 0, double baseY = 0, double xScale = 1, double yScale = 1, bool pareLine = true)
         {
-            bool first_obj = true;
             foreach (ObjectId oid in objects)
             {
                 switch (oid.ObjectClass.DxfName)
@@ -301,7 +298,7 @@ namespace AcCommandTest
                         _texts.Add(new AcText(mText.Text, new Point2d(baseX + xScale * ptMTextCenter.X, baseY + yScale * ptMTextCenter.Y), yScale * mText.Height));
                         break;
                     case "LINE":
-                        if (!embeded)
+                        if (pareLine)
                         {
                             Line line = (Line)oid.GetObject(OpenMode.ForRead);
                             ParseLine(new Point2d(baseX + xScale * line.StartPoint.X, baseY + yScale * line.StartPoint.Y),
@@ -309,7 +306,7 @@ namespace AcCommandTest
                         }
                         break;
                     case "LWPOLYLINE":
-                        if (!embeded)
+                        if (pareLine)
                         {
                             Polyline pLine = (Polyline)oid.GetObject(OpenMode.ForRead);
                             ParsePolyLine(pLine, baseX, baseY, xScale, yScale);
@@ -321,14 +318,13 @@ namespace AcCommandTest
                         {
                             BlockReference br = obj as BlockReference;
                             BlockTableRecord btr = br.BlockTableRecord.GetObject(OpenMode.ForRead) as BlockTableRecord;
-                            ParseObjects(btr, br.Position.X, br.Position.Y, br.ScaleFactors.X, br.ScaleFactors.Y, embeded || !first_obj);
+                            ParseObjects(btr, br.Position.X, br.Position.Y, br.ScaleFactors.X, br.ScaleFactors.Y, (_tableHLines.Count == 0 && _tableVLines.Count == 0));
                         }
                         break;
                     default:
                         //System.Windows.Forms.MessageBox.Show(oid.ObjectClass.DxfName);
                         break;
                 }
-                first_obj = false;
             }
         }
 

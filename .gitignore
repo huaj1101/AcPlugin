@@ -9,3 +9,4 @@
 /.vs/AcPlugin/v16/*.suo
 /AcPluginTest/*.user
 /acCustomUI/obj/Release
+/AcStarter/obj/Release
