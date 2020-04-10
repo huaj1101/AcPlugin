@@ -59,10 +59,11 @@ namespace AcStarter
         {
             RegistryKey key = Registry.CurrentUser;
             RegistryKey profilesKey = key.OpenSubKey(@"Software\Autodesk\AutoCAD\R19.1\ACAD-D001\Install", false);
-            var dir = profilesKey?.GetValue("INSTALLDIR", null);
-            if (dir != null)
+            String mydir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var installDir = profilesKey?.GetValue("INSTALLDIR", null);
+            if (installDir != null)
             {
-                acadExe = Path.Combine(dir.ToString(), "acad.exe");
+                acadExe = Path.Combine(installDir.ToString(), "acad.exe");
                 exeArgs = @"/nologo ";
                 if (GetProfileImported())
                 {
@@ -70,11 +71,12 @@ namespace AcStarter
                 }
                 else
                 {
-                    String mydir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                     String profileRegFile = Path.Combine(mydir, PROFILE_MC2020 + ".arg");
 
                     exeArgs += "/p \"" + profileRegFile + "\"";
                 }
+
+                exeArgs += " /s \"" + mydir + "\"";
 
                 return true;
             }

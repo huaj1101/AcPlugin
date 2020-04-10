@@ -87,6 +87,12 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             {
                 McWriteMessage("MyPlugin 插件 UI 加载开始\n");
 
+                Application.UserConfigurationManager.CurrentProfileChanged += new ProfileEventHandler((sender, e) =>
+                {
+                    McWriteMessage("CurrentProfileChanged : ProfileName: " + e.ProfileName + "\n");
+                });
+
+
                 AddAppEvent();
                 McWriteMessage("0.0  AddAppEvent()\n");
 
@@ -156,9 +162,6 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                 McWriteMessage("13  McCustomMainMenuBizShow()\n");
                 McCustomMainMenuBizShow();
 
-                resetProfileInRegistry(); //注册表中记录的值重置为默认配置文件，AutoCAD 独立启动时仍可使用默认配置文件
-                McWriteMessage("注册表选定配置信息已重置\n");
-
                 mcUiLoaded = true;
 
                 McWriteMessage("MyPlugin 插件 UI 已加载\n");
@@ -174,6 +177,11 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                     McWriteMessage(".NET System Exception\n" + ex.Message + "\n");
                 }
             }
+            finally
+            {
+                resetProfileInRegistry(); //注册表中记录的值重置为默认配置文件，AutoCAD 独立启动时仍可使用默认配置文件
+                McWriteMessage("注册表选定配置信息已重置\n");
+            }
         }
 
         [CommandMethod("McUnLoad")]
@@ -188,8 +196,8 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             {
                 McWriteMessage("MyPlugin 插件 UI 卸载开始\n");
 
-                McPaletteSetLeftUn();
-                McWriteMessage("1  McPaletteSetLeftUn()\n");
+                //McPaletteSetLeftUn();
+                //McWriteMessage("1  McPaletteSetLeftUn()\n");
                 McPaletteSetTopUn();
                 McWriteMessage("2  McPaletteSetTopUn()\n");
                 McPaletteSetBottomUn();
@@ -588,7 +596,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         public void McCustomToolbar()
         {
             string mcToolbarName = "MC工具栏";
-            AcadMenuGroup mg = AcadApp.MenuGroups.Item(MG_NAME_MCMENU);
+            AcadMenuGroup mg = AcadApp.MenuGroups.Item(0);
             AcadToolbars atbs = mg.Toolbars;
             for (int i = 0; i < atbs.Count; i++)
             {
@@ -626,7 +634,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         public void McCustomToolbarUn()
         {
             string mcToolbarName = "MC工具栏";
-            AcadMenuGroup mg = AcadApp.MenuGroups.Item(MG_NAME_MCMENU);
+            AcadMenuGroup mg = AcadApp.MenuGroups.Item(0);
 
             AcadToolbars atbs = mg.Toolbars;
             for (int i = 0; i < atbs.Count; i++)
@@ -643,7 +651,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         [CommandMethod("McHideAllToolbar")]
         public void McHideAllToolbar()
         {
-            AcadMenuGroup mg = AcadApp.MenuGroups.Item(MG_NAME_MCMENU);
+            AcadMenuGroup mg = AcadApp.MenuGroups.Item(0);
 
             AcadToolbars atbs = mg.Toolbars;
             for (int i = 0; i < atbs.Count; i++)
@@ -901,8 +909,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
 
         //}
 
-        private static AcadPopupMenu customMainMenuBiz = null;
-        
+      
         [CommandMethod("McCustomMainMenuBizShow")]
         public void McCustomMainMenuBizShow()
         {
@@ -1101,6 +1108,8 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                 {
                     acadPreferences.Profiles.ActiveProfile = PROFILE_MC2020;
                 }
+
+                
             }
 
             resetProfileInRegistry(); //注册表中记录的值重置为默认配置文件，AutoCAD 独立启动时仍可使用默认配置文件
@@ -1177,45 +1186,45 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
         }
 
-        //[CommandMethod("SaveMenuToCuiX")]
-        //public void SaveMenuToCuiX()
-        //{
-        //    ////自定义的组名
-        //    string strMyGroupName = "McGroup";
-        //    String dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        //    //保存的CUI文件名（从CAD2010开始，后缀改为了cuix）
-        //    string strCuiFileName = dir + "\\" + MG_NAME_MCMENU + ".cuix";
+        [CommandMethod("SaveMenuToCuiX")]
+        public void SaveMenuToCuiX()
+        {
+            ////自定义的组名
+            string strMyGroupName = "McGroup";
+            String dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            //保存的CUI文件名（从CAD2010开始，后缀改为了cuix）
+            string strCuiFileName = dir + "\\" + "" + ".cuix";
 
-        //    //创建一个自定义组（这个组中将包含我们自定义的命令、菜单、工具栏、面板等）
-        //    CustomizationSection myCSection = new CustomizationSection();
-        //    myCSection.MenuGroupName = strMyGroupName;
+            //创建一个自定义组（这个组中将包含我们自定义的命令、菜单、工具栏、面板等）
+            CustomizationSection myCSection = new CustomizationSection(strCuiFileName);
+            myCSection.MenuGroupName = strMyGroupName;
 
-        //    //创建自定义命令组
-        //    MacroGroup mg = new MacroGroup("MyMethod", myCSection.MenuGroup);
-        //    MenuMacro mm1 = new MenuMacro(mg, "打开文件", "_MCOF", "");
-        //    MenuMacro mm2 = new MenuMacro(mg, "打开模板", "_MCOM", "");
-        //    MenuMacro mm3 = new MenuMacro(mg, "保存", "_MCSV", "");
+            //创建自定义命令组
+            MacroGroup mg = new MacroGroup("MCBIZ", myCSection.MenuGroup);
+            MenuMacro mm1 = new MenuMacro(mg, "打开文件", "_MCOF", "");
+            MenuMacro mm2 = new MenuMacro(mg, "打开模板", "_MCOM", "");
+            MenuMacro mm3 = new MenuMacro(mg, "保存", "_MCSV", "");
 
-        //    //声明菜单别名
-        //    StringCollection scMyMenuAlias = new StringCollection();
-        //    scMyMenuAlias.Add("MyPop1");
-        //    scMyMenuAlias.Add("MyTestPop");
+            //声明菜单别名
+            StringCollection scMyMenuAlias = new StringCollection();
+            scMyMenuAlias.Add("MyPop1");
+            scMyMenuAlias.Add("MyTestPop");
 
-        //    //菜单项（将显示在项部菜单栏中）
-        //    PopMenu pmParent = new PopMenu("MC菜单", scMyMenuAlias, "MC菜单", myCSection.MenuGroup);
+            //菜单项（将显示在项部菜单栏中）
+            PopMenu pmParent = new PopMenu("MC菜单", scMyMenuAlias, "MC菜单", myCSection.MenuGroup);
 
-        //    //子项的菜单（多级）
-        //    PopMenu pm1 = new PopMenu("打开", new StringCollection(), "", myCSection.MenuGroup);
-        //    PopMenuRef pmr1 = new PopMenuRef(pm1, pmParent, -1);
-        //    PopMenuItem pmi1 = new PopMenuItem(mm1, "文件", pm1, -1);
-        //    PopMenuItem pmi2 = new PopMenuItem(mm2, "模板", pm1, -1);
+            //子项的菜单（多级）
+            PopMenu pm1 = new PopMenu("打开", new StringCollection(), "", myCSection.MenuGroup);
+            PopMenuRef pmr1 = new PopMenuRef(pm1, pmParent, -1);
+            PopMenuItem pmi1 = new PopMenuItem(mm1, "文件", pm1, -1);
+            PopMenuItem pmi2 = new PopMenuItem(mm2, "模板", pm1, -1);
 
-        //    //子项的菜单（单级）
-        //    PopMenuItem pmi3 = new PopMenuItem(mm3, "保存(&S)", pmParent, -1);
+            //子项的菜单（单级）
+            PopMenuItem pmi3 = new PopMenuItem(mm3, "保存(&S)", pmParent, -1);
 
-        //    // 最后保存文件
-        //    myCSection.SaveAs(strCuiFileName);
-        //}
+            // 最后保存文件
+            myCSection.Save();
+        }
     }
 
 }

@@ -389,7 +389,6 @@ REGEDIT4
 "FileNameMRU2"="E:\\BaiduNetdiskDownload\\sl\\市政算量\\市政教程配套图纸资料\\市政教程配套图纸资料\\市政课程全套图纸"
 
 [HKEY_CURRENT_USER\Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Profiles\MC2020\Dialogs\选择样板]
-"FileNameMRU0"="%LocalRootFolder%\\template\\acad.dwt"
 "InitialFilterIndex"=dword:00000000
 "ViewMode"=dword:00000004
 "InitialDirectory"="%LocalRootFolder%\\template\\"
@@ -400,7 +399,6 @@ REGEDIT4
 "Height"=dword:00000253
 
 [HKEY_CURRENT_USER\Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Profiles\MC2020\Dialogs\选择自定义文件]
-"FileNameMRU0"="E:\\work\\autocad2014\\CustomUI\\AcPlugin\\AcCustomUI\\McMenu.CUIX"
 "InitialFilterIndex"=dword:00000000
 "ViewMode"=dword:00000004
 "InitialDirectory"="E:\\work\\autocad2014\\CustomUI\\AcPlugin\\AcCustomUI\\"
@@ -409,12 +407,7 @@ REGEDIT4
 "Y"=dword:000000DA
 "Width"=dword:0000036A
 "Height"=dword:00000253
-"FileNameMRU1"="E:\\work\\autocad2014\\CustomUI\\AcPlugin\\AcCustomUI"
-"FileNameMRU2"="%InstallFolder%\\UserDataCache\\zh-CN\\Support\\acad.CUIX"
-"FileNameMRU3"="%InstallFolder%\\UserDataCache\\zh-CN\\Support"
-"FileNameMRU4"="E:\\work\\autocad2014\\CustomUI\\AcPlugin\\output\\Debug\\McMenu.CUIX"
-"FileNameMRU5"="E:\\work\\autocad2014\\CustomUI\\AcPlugin\\output\\Debug"
-"FileNameMRU6"="%RoamableRootFolder%\\support\\acad.cuix"
+
 
 [HKEY_CURRENT_USER\Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Profiles\MC2020\Drawing Recovery]
 ""=""
@@ -422,7 +415,6 @@ REGEDIT4
 
 [HKEY_CURRENT_USER\Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Profiles\MC2020\Drawing Recovery\Unresolved]
 ""=""
-"LoggedFile1"="E:\\BaiduNetdiskDownload\\sl\\市政算量\\市政教程配套图纸资料\\市政教程配套图纸资料\\市政课程全套图纸\\1、南支路-道路工程\\05-南支路-平面图(2015.8.27改).dwg"
 "LoggedFileCount"=dword:00000001
 
 [HKEY_CURRENT_USER\Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Profiles\MC2020\Drawing Window]
@@ -565,7 +557,7 @@ REGEDIT4
 
 [HKEY_CURRENT_USER\Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Profiles\MC2020\General Configuration]
 "EnterpriseMenuFile"="."
-"MenuFile"="E:\\work\\autocad2014\\CustomUI\\AcPlugin\\AcCustomUI\\McMenu"
+"MenuFile"="McMenu"
 "TempDirectory"="%TempFolder%\\"
 "ModeBits"=dword:FFFFFFFE
 "PlotSpoolerDirectory"="%TempFolder%\\"
@@ -696,58 +688,6 @@ REGEDIT4
 "AutoScale"=dword:00000001
 
 [HKEY_CURRENT_USER\Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Profiles\MC2020\Toolbars]
-"ACAD.AC_SMOOTH_MESH"="show top 3 1"
-"ACAD.AC_SMOOTH_MESH_PRIMITIVES"="hide float 200 200 1"
-"ACAD.TB_DIMENSION"="hide float 100 130 1"
-"ACAD.TB_DRAW"="show left 0 0"
-"ACAD.TB_DRAWORDER"="show right 0 1"
-"ACAD.TB_INQUIRY"="hide float 100 170 1"
-"ACAD.TB_INSERT"="hide float 100 190 1"
-"ACAD.TB_LAYOUTS"="hide top 2 0"
-"ACAD.TB_MODIFY"="show right 0 0"
-"ACAD.TB_MODIFY_II"="hide float 100 270 1"
-"ACAD.TB_OBJECT_PROPERTIES"="show top 2 1"
-"ACAD.TB_LAYER"="show top 1 1"
-"ACAD.TB_STYLES"="show top 1 0"
-"ACAD.TB_OBJECT_SNAP"="hide float 100 210 1"
-"ACAD.TB_3DNAV"="hide float 100 350 1"
-"ACAD.TB_REFEDIT"="hide float 100 170 1"
-"ACAD.TB_REFERENCE"="hide float 100 370 1"
-"ACAD.TB_RENDER"="hide float 100 230 1"
-"ACAD.TB_SOLIDS"="hide top 1 0"
-"ACAD.TB_SOLIDS2"="hide float 100 250 1"
-"ACAD.TB_SURFACE_CREATION_FLYOUT"="hide float 0 250 1"
-"ACAD.TB_SURFACE_CREATION"="hide float 200 200 1"
-"ACAD.TB_SURFACE_Editing"="hide float 200 250 1"
-"ACAD.STANDARD_ANNOTATION"="hide top 0 0"
-"ACAD.TB_STANDARD"="show top 0 0"
-"ACAD.TB_STANDARDS"="hide top 1 0"
-"ACAD.TB_TEXT"="hide float 100 320 1"
-"ACAD.TB_UCS"="hide top 0 0"
-"ACAD.TB_UCSII"="hide float 100 300 1"
-"ACAD.TB_WORKSPACES"="show top 0 1"
-"ACAD.TB_VIEWPOINT"="hide float 100 330 1"
-"ACAD.TB_VIEWPORTS"="hide float 100 350 1"
-"ACAD.TB_WEB"="hide float 100 380 1"
-"ACAD.TB_ZOOM"="hide float 100 350 1"
-"ACAD.TB_LAYER2"="hide top 0 0"
-"ACAD.TB_LIGHTS"="hide float 200 200 1"
-"ACAD.TB_MATMAPPING"="hide float 200 200 1"
-"ACAD.TB_VISUALSTYLE"="hide float 200 200 1"
-"ACAD.TB_ORBIT"="hide float 200 200 1"
-"ACAD.TB_CAMERA_ADJUSTMENT"="hide float 200 200 1"
-"ACAD.TB_WALKANDFLY"="hide float 200 200 1"
-"ACAD.TB_MLEADER"="hide float 200 200 1"
-"ACAD.TB_FIND_TEXT"="hide float 200 200 1"
-"ACAD.TB_MEASUREMENT_TOOLS"="hide top 1 0"
-"ACAD.PARAMETRIC_TOOLBAR"="hide float 200 200 1"
-"ACAD.TB_GEOMCONSTRAINT"="hide float 200 200 1"
-"ACAD.TB_DIMCONSTRAINT"="hide float 200 200 1"
-"ACAD.TB_DRAWORDER_ANNOTATION_TO_FRONT"="hide float 200 200 1"
-"ACAD.TB_GROUP"="hide float 200 300 1"
-"ACAD.Array_Toolbar"="hide float 200 200 1"
-"ACAD.TB_ARRAYEDIT"="hide float 100 170 1"
-"ACAD.TB_POINTCLOUD"="hide float 100 190 1"
 "LargeButtons"="yes"
 "ToolTips"="yes"
 "ShowShortcuts"="yes"
@@ -755,60 +695,7 @@ REGEDIT4
 "ShowUserTags"="yes"
 "ShowExtended"="yes"
 "ExtendAfter"="2"
-"ACAD.您自己工具栏的名称"="show right 0 0"
-"ACAD.MC工具栏"="show right 0 0"
-"ACAD--.AC_SMOOTH_MESH"="show top 5 1"
-"ACAD--.AC_SMOOTH_MESH_PRIMITIVES"="hide float 200 200 1"
-"ACAD--.TB_DIMENSION"="hide float 100 130 1"
-"ACAD--.TB_DRAW"="show left 0 1"
-"ACAD--.TB_DRAWORDER"="show right 0 3"
-"ACAD--.TB_INQUIRY"="hide float 100 170 1"
-"ACAD--.TB_INSERT"="hide float 100 190 1"
-"ACAD--.TB_LAYOUTS"="hide top 2 0"
-"ACAD--.TB_MODIFY"="show right 0 2"
-"ACAD--.TB_MODIFY_II"="hide float 100 270 1"
-"ACAD--.TB_OBJECT_PROPERTIES"="show top 4 1"
-"ACAD--.TB_LAYER"="show top 3 1"
-"ACAD--.TB_STYLES"="show top 3 0"
-"ACAD--.TB_OBJECT_SNAP"="hide float 100 210 1"
-"ACAD--.TB_3DNAV"="hide float 100 350 1"
-"ACAD--.TB_REFEDIT"="hide float 100 170 1"
-"ACAD--.TB_REFERENCE"="hide float 100 370 1"
-"ACAD--.TB_RENDER"="hide float 100 230 1"
-"ACAD--.TB_SOLIDS"="hide top 1 0"
-"ACAD--.TB_SOLIDS2"="hide float 100 250 1"
-"ACAD--.TB_SURFACE_CREATION_FLYOUT"="hide float 0 250 1"
-"ACAD--.TB_SURFACE_CREATION"="hide float 200 200 1"
-"ACAD--.TB_SURFACE_Editing"="hide float 200 250 1"
-"ACAD--.STANDARD_ANNOTATION"="hide top 0 0"
-"ACAD--.TB_STANDARD"="show top 2 0"
-"ACAD--.TB_STANDARDS"="hide top 1 0"
-"ACAD--.TB_TEXT"="hide float 100 320 1"
-"ACAD--.TB_UCS"="hide top 0 0"
-"ACAD--.TB_UCSII"="hide float 100 300 1"
-"ACAD--.TB_WORKSPACES"="show top 0 1"
-"ACAD--.TB_VIEWPOINT"="hide float 100 330 1"
-"ACAD--.TB_VIEWPORTS"="hide float 100 350 1"
-"ACAD--.TB_WEB"="hide float 100 380 1"
-"ACAD--.TB_ZOOM"="hide float 100 350 1"
-"ACAD--.TB_LAYER2"="hide top 0 0"
-"ACAD--.TB_LIGHTS"="hide float 200 200 1"
-"ACAD--.TB_MATMAPPING"="hide float 200 200 1"
-"ACAD--.TB_VISUALSTYLE"="hide float 200 200 1"
-"ACAD--.TB_ORBIT"="hide float 200 200 1"
-"ACAD--.TB_CAMERA_ADJUSTMENT"="hide float 200 200 1"
-"ACAD--.TB_WALKANDFLY"="hide float 200 200 1"
-"ACAD--.TB_MLEADER"="hide float 200 200 1"
-"ACAD--.TB_FIND_TEXT"="hide float 200 200 1"
-"ACAD--.TB_MEASUREMENT_TOOLS"="hide top 1 0"
-"ACAD--.PARAMETRIC_TOOLBAR"="hide float 200 200 1"
-"ACAD--.TB_GEOMCONSTRAINT"="hide float 200 200 1"
-"ACAD--.TB_DIMCONSTRAINT"="hide float 200 200 1"
-"ACAD--.TB_DRAWORDER_ANNOTATION_TO_FRONT"="hide float 200 200 1"
-"ACAD--.TB_GROUP"="hide float 200 300 1"
-"ACAD--.Array_Toolbar"="hide float 200 200 1"
-"ACAD--.TB_ARRAYEDIT"="hide float 100 170 1"
-"ACAD--.TB_POINTCLOUD"="hide float 100 190 1"
+"MCMENU.MC工具栏"="show right 0 0"
 "MCMENU.AC_SMOOTH_MESH"="show top 3 1"
 "MCMENU.AC_SMOOTH_MESH_PRIMITIVES"="hide float 200 200 1"
 "MCMENU.TB_DIMENSION"="hide float 100 130 1"
