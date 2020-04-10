@@ -76,7 +76,8 @@ namespace AcStarter
                     exeArgs += "/p \"" + profileRegFile + "\"";
                 }
 
-                exeArgs += " /s \"" + mydir + "\"";
+                string supdir = Path.Combine(installDir.ToString(), "support");
+                exeArgs += " /s \"" + mydir + ";" + supdir + "\"";
 
                 return true;
             }
