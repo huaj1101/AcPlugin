@@ -24,6 +24,12 @@ namespace AcCommandTest
         private AcTableCell[,] _cells;
         private int _rowCount;
         private int _colCount;
+        /// <summary>
+        /// 容错大小
+        /// 有时候画的格线有误差搭接不上，增加一些容错性
+        /// 表格有大有小，所以容错大小是根据表格大小计算出来的
+        /// </summary>
+        private double _tolerance;
 
         /// <summary>
         /// 解析选中对象为一个表格，如果无法识别会抛出AcTableParseException异常，需调用方处理异常
@@ -44,12 +50,38 @@ namespace AcCommandTest
         {
             ParseObjects(objects);
             SortObjects();
+            CalcTolerance();
+            //System.Windows.Forms.MessageBox.Show(_tableHLines.Count.ToString());
+            //System.Windows.Forms.MessageBox.Show(_tableHLines.Last().ToString());
+            //由于清理算法原因，次数特意清理多次
             CleanLines();
+            CleanLines();
+            CleanLines();
+            //string s = "";
+            //foreach (var item in _tableVLines)
+            //{
+            //    s += item.XorY.ToString() + ",";
+            //}
+            //System.Windows.Forms.MessageBox.Show(s);
             BuildCells();
             PutTextToCells();
             CalcCellMerge();
             CalcCellsValue();
             return GenerateResult();
+        }
+
+        /// <summary>
+        /// 计算容错大小
+        /// 具体计算办法是平均格子宽度、高度的1/10
+        /// </summary>
+        private void CalcTolerance()
+        {
+            double hMaxLen = _tableHLines.Max(line => line.Length);
+            double hTolerance = hMaxLen / (_tableVLines.Count - 1) / 10;
+            double vMaxLen = _tableVLines.Max(line => line.Length);
+            double vTolerance = vMaxLen / (_tableHLines.Count - 1) / 10;
+            _tolerance = Math.Min(hTolerance, vTolerance);
+            //System.Windows.Forms.MessageBox.Show(_tolerance.ToString());
         }
 
         /// <summary>
@@ -59,58 +91,108 @@ namespace AcCommandTest
         /// </summary>
         private void CleanLines()
         {
+            //清理横线
             AcTableLine preHLine = null;
             foreach (AcTableLine hLine in _tableHLines.ToArray())
             {
-                bool validate_start = false;
-                bool validate_end = false;
+                hLine.CrossPointCount = 0;
                 foreach (AcTableLine vLine in _tableVLines)
                 {
-                    if (CommandUtils.Compare(hLine.Start.X, vLine.XorY) == 0)
+                    Point2d pt = new Point2d(vLine.XorY, hLine.XorY);
+                    if (hLine.HasSegmentOn(pt, _tolerance) && vLine.HasSegmentOn(pt, _tolerance))
                     {
-                        validate_start = true;
-                    }
-                    if (CommandUtils.Compare(hLine.End.X, vLine.XorY) == 0)
-                    {
-                        validate_end = true;
+                        hLine.CrossPointCount += 1;
                     }
                 }
-                if (!validate_start && !validate_end)
+                if (hLine.CrossPointCount <= 1)
                 {
                     _tableHLines.Remove(hLine);
                 }
-                else if (preHLine != null && preHLine.XorY - hLine.XorY <= 1) //表格容错，挨的太近的格线，删除掉一根（短的）
+                else if (preHLine != null && preHLine.XorY - hLine.XorY <= _tolerance) //表格容错，挨的太近的格线，删除掉一根交叉点小的
                 {
-                    _tableHLines.Remove(preHLine.Length > hLine.Length ? hLine : preHLine);
+                    //string s = string.Format("{0:f3},{1:f3},{2:f3},{3:f3}", preHLine.XorY, hLine.XorY, preHLine.XorY - hLine.XorY, _tolerance);
+                    //System.Windows.Forms.MessageBox.Show(s);
+                    if (preHLine.CrossPointCount < hLine.CrossPointCount)
+                    {
+                        _tableHLines.Remove(preHLine);
+                        preHLine = hLine;
+                    }
+                    else
+                    {
+                        _tableHLines.Remove(hLine);
+                    }
                 }
-                preHLine = hLine;
+                else
+                {
+                    preHLine = hLine;
+                }
             }
+            //清理竖线
             AcTableLine preVLine = null;
             foreach (AcTableLine vLine in _tableVLines.ToArray())
             {
-                bool validate_start = false;
-                bool validate_end = false;
+                vLine.CrossPointCount = 0;
                 foreach (AcTableLine hLine in _tableHLines)
                 {
-                    if (CommandUtils.Compare(vLine.Start.Y, hLine.XorY) == 0)
+                    Point2d pt = new Point2d(vLine.XorY, hLine.XorY);
+                    if (hLine.HasSegmentOn(pt, _tolerance) && vLine.HasSegmentOn(pt, _tolerance))
                     {
-                        validate_start = true;
-                    }
-                    if (CommandUtils.Compare(vLine.End.Y, hLine.XorY) == 0)
-                    {
-                        validate_end = true;
+                        vLine.CrossPointCount += 1;
                     }
                 }
-                if (!validate_start || !validate_end)
+                if (vLine.CrossPointCount <= 1)
                 {
                     _tableVLines.Remove(vLine);
                 }
-
-                else if (preVLine != null && vLine.XorY - preVLine.XorY < 1) //表格容错，挨的太近的格线，删除掉一根（短的）
+                else if (preVLine != null && vLine.XorY - preVLine.XorY < _tolerance) //表格容错，挨的太近的格线，删除掉一根交叉点小的
                 {
-                    _tableVLines.Remove(preVLine.Length > vLine.Length ? vLine : preVLine);
+                    if (preVLine.CrossPointCount < vLine.CrossPointCount)
+                    {
+                        _tableVLines.Remove(preVLine);
+                        preVLine = vLine;
+                    }
+                    else
+                    {
+                        _tableVLines.Remove(vLine);
+                    }
                 }
-                preVLine = vLine;
+                else
+                {
+                    preVLine = vLine;
+                }
+            }
+            //有时候表格会有双层外框，清理外层
+            if (_tableHLines.Count > 2 || _tableVLines.Count > 2)
+            {
+                if (_tableHLines[0].CrossPointCount <= 2 &&
+                    _tableHLines.Last().CrossPointCount <= 2 &&
+                    _tableVLines[0].CrossPointCount <= 2 &&
+                    _tableVLines.Last().CrossPointCount <= 2)
+                {
+                    _tableHLines.RemoveAt(0);
+                    _tableHLines.RemoveAt(_tableHLines.Count - 1);
+                    _tableVLines.RemoveAt(0);
+                    _tableVLines.RemoveAt(_tableVLines.Count - 1);
+                }
+            }
+
+            //清理只有2个交点并且不等于表格宽和高的格线
+            double tableWidth = _tableHLines.Max(line => line.Length);
+            foreach (AcTableLine hLine in _tableHLines.ToArray())
+            {
+                if (hLine.CrossPointCount <= 2 && CommandUtils.Compare(hLine.Length, tableWidth) < 0)
+                {
+                    //System.Windows.Forms.MessageBox.Show(hLine.Length.ToString());
+                    _tableHLines.Remove(hLine);
+                }
+            }
+            double tableHeight = _tableVLines.Max(line => line.Length);
+            foreach (AcTableLine vLine in _tableVLines.ToArray())
+            {
+                if (vLine.CrossPointCount <= 2 && CommandUtils.Compare(vLine.Length, tableHeight) < 0)
+                {
+                    _tableVLines.Remove(vLine);
+                }
             }
         }
 
@@ -126,7 +208,7 @@ namespace AcCommandTest
                     if (_cells[i, j].InnerCell.CellType == TableCellType.MergedSlave)
                     {
                         if (_cells[i, j].InnerCell.Row == _cells[i, j].InnerCell.MasterCell.Row &&
-                            !_cells[i, j].RightLine.HasSegmentOn(_cells[i, j].Center.Y) &&
+                            !_cells[i, j].RightLine.HasSegmentOn(_cells[i, j].Center.Y, _tolerance) &&
                             j < _colCount - 1 &&
                             _cells[i, j + 1].InnerCell.CellType == TableCellType.Normal)
                         {
@@ -138,7 +220,7 @@ namespace AcCommandTest
                             }
                         }
                         else if (_cells[i, j].InnerCell.Col == _cells[i, j].InnerCell.MasterCell.Col &&
-                            !_cells[i, j].BottomLine.HasSegmentOn(_cells[i, j].Center.X) &&
+                            !_cells[i, j].BottomLine.HasSegmentOn(_cells[i, j].Center.X, _tolerance) &&
                             i < _rowCount - 1 &&
                             _cells[i + 1, j].InnerCell.CellType == TableCellType.Normal)
                         {
@@ -152,14 +234,14 @@ namespace AcCommandTest
                     }
                     else if (_cells[i, j].InnerCell.CellType == TableCellType.Normal)
                     {
-                        if (!_cells[i, j].RightLine.HasSegmentOn(_cells[i, j].Center.Y) && j < _colCount - 1)
+                        if (!_cells[i, j].RightLine.HasSegmentOn(_cells[i, j].Center.Y, _tolerance) && j < _colCount - 1)
                         {
                             _cells[i, j].InnerCell.CellType = TableCellType.MergedMaster;
                             _cells[i, j].InnerCell.ColSpan = 2;
                             _cells[i, j + 1].InnerCell.MasterCell = _cells[i, j].InnerCell;
                             _cells[i, j + 1].InnerCell.CellType = TableCellType.MergedSlave;
                         }
-                        if (!_cells[i, j].BottomLine.HasSegmentOn(_cells[i, j].Center.X) && i < _rowCount - 1)
+                        if (!_cells[i, j].BottomLine.HasSegmentOn(_cells[i, j].Center.X, _tolerance) && i < _rowCount - 1)
                         {
                             _cells[i, j].InnerCell.CellType = TableCellType.MergedMaster;
                             _cells[i, j].InnerCell.RowSpan = 2;
@@ -281,7 +363,7 @@ namespace AcCommandTest
         /// 识别选中的对象，将其变为内部结构
         /// </summary>
         /// <param name="objects"></param>
-        private void ParseObjects(IEnumerable objects, double baseX = 0, double baseY = 0, double xScale = 1, double yScale = 1, bool pareLine = true)
+        private void ParseObjects(IEnumerable objects, double baseX = 0, double baseY = 0, double xScale = 1, double yScale = 1)
         {
             foreach (ObjectId oid in objects)
             {
@@ -290,27 +372,29 @@ namespace AcCommandTest
                     case "TEXT":
                         DBText text = (DBText)oid.GetObject(OpenMode.ForRead);
                         Point2d ptTextCenter = CommandUtils.GetCenterPoint(text);
-                        _texts.Add(new AcText(text.TextString, new Point2d(baseX + xScale * ptTextCenter.X, baseY + yScale * ptTextCenter.Y), yScale * text.Height));
+                        AcText at1 = new AcText(text.TextString, new Point2d(baseX + xScale * ptTextCenter.X, baseY + yScale * ptTextCenter.Y), yScale * text.Height);
+                        if (!TextExists(at1))
+                        {
+                            _texts.Add(at1);
+                        }
                         break;
                     case "MTEXT":
                         MText mText = (MText)oid.GetObject(OpenMode.ForRead);
                         Point2d ptMTextCenter = CommandUtils.GetCenterPoint(mText);
-                        _texts.Add(new AcText(mText.Text, new Point2d(baseX + xScale * ptMTextCenter.X, baseY + yScale * ptMTextCenter.Y), yScale * mText.Height));
+                        AcText at2 = new AcText(mText.Text, new Point2d(baseX + xScale * ptMTextCenter.X, baseY + yScale * ptMTextCenter.Y), yScale * mText.Height);
+                        if (!TextExists(at2))
+                        {
+                            _texts.Add(at2);
+                        }
                         break;
                     case "LINE":
-                        if (pareLine)
-                        {
-                            Line line = (Line)oid.GetObject(OpenMode.ForRead);
-                            ParseLine(new Point2d(baseX + xScale * line.StartPoint.X, baseY + yScale * line.StartPoint.Y),
-                                new Point2d(baseX + xScale * line.EndPoint.X, baseY + yScale * line.EndPoint.Y));
-                        }
+                        Line line = (Line)oid.GetObject(OpenMode.ForRead);
+                        ParseLine(new Point2d(baseX + xScale * line.StartPoint.X, baseY + yScale * line.StartPoint.Y),
+                            new Point2d(baseX + xScale * line.EndPoint.X, baseY + yScale * line.EndPoint.Y));
                         break;
                     case "LWPOLYLINE":
-                        if (pareLine)
-                        {
-                            Polyline pLine = (Polyline)oid.GetObject(OpenMode.ForRead);
-                            ParsePolyLine(pLine, baseX, baseY, xScale, yScale);
-                        }
+                        Polyline pLine = (Polyline)oid.GetObject(OpenMode.ForRead);
+                        ParsePolyLine(pLine, baseX, baseY, xScale, yScale);
                         break;
                     case "INSERT":
                         DBObject obj = oid.GetObject(OpenMode.ForRead);
@@ -318,7 +402,7 @@ namespace AcCommandTest
                         {
                             BlockReference br = obj as BlockReference;
                             BlockTableRecord btr = br.BlockTableRecord.GetObject(OpenMode.ForRead) as BlockTableRecord;
-                            ParseObjects(btr, br.Position.X, br.Position.Y, br.ScaleFactors.X, br.ScaleFactors.Y, (_tableHLines.Count == 0 && _tableVLines.Count == 0));
+                            ParseObjects(btr, baseX + br.Position.X, baseY + br.Position.Y, xScale * br.ScaleFactors.X, yScale * br.ScaleFactors.Y);
                         }
                         break;
                     default:
@@ -326,6 +410,23 @@ namespace AcCommandTest
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// 判断Text是否已存在（重复的Text）
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private bool TextExists(AcText text)
+        {
+            foreach (AcText t in _texts)
+            {
+                if (t.Value == text.Value && t.Position == text.Position && t.Height == text.Height)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -341,10 +442,10 @@ namespace AcCommandTest
             {
                 throw new AcTableParseException("未能识别到表格内容");
             }
-            _texts.Sort((item1, item2) => (int)(item1.Position.X - item2.Position.X));
+            _texts.Sort((item1, item2) => Math.Sign(item1.Position.X - item2.Position.X));
             //上面的线Y坐标更大，所以反着排序
-            _tableHLines.Sort((item1, item2) => (int)(item2.XorY - item1.XorY));
-            _tableVLines.Sort((item1, item2) => (int)(item1.XorY - item2.XorY));
+            _tableHLines.Sort((item1, item2) => Math.Sign(item2.XorY - item1.XorY));
+            _tableVLines.Sort((item1, item2) => Math.Sign(item1.XorY - item2.XorY));
         }
 
         /// <summary>

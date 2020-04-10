@@ -81,6 +81,8 @@
   <ItemGroup>
     <Compile Include="CommandUtils.cs" />
     <Compile Include="EnumEntitiesCommand.cs" />
+    <Compile Include="ChangeFontCommand.cs" />
+    <Compile Include="Fonts\FontUtils.cs" />
     <Compile Include="TableParse\AcLineSegment.cs" />
     <Compile Include="TableParse\AcTableCell.cs" />
     <Compile Include="TableParse\AcTableLine.cs" />

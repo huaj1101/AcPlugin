@@ -25,37 +25,8 @@ namespace AcPluginTest
             editor.WriteMessage("AcPluginTest插件初始化\n");
             CommandLoader loader = new CommandLoader();
             loader.LoadCommands();
-
-            //处理字体
-            try
-            {
-                FontUtils.PutFontFiles();
-                FontUtils.ProcessFont(Application.DocumentManager.MdiActiveDocument);
-                Application.DocumentManager.MdiActiveDocument.UserData.Add("mc_font", true);
-            }
-            catch (System.Exception e)
-            {
-                editor.WriteMessage(e.ToString());
-            }
-            //注册事件
-            Application.DocumentManager.DocumentActivated += DocumentManager_DocumentActivated;
         }
 
-        void DocumentManager_DocumentActivated(object sender, DocumentCollectionEventArgs e)
-        {
-            if (!e.Document.UserData.Contains("mc_font"))
-            {
-                try
-                {
-                    FontUtils.ProcessFont(e.Document);
-                    e.Document.UserData.Add("mc_font", true);
-                }
-                catch (System.Exception ex)
-                {
-                    e.Document.Editor.WriteMessage(ex.ToString());
-                }
-            }
-        }
 
         public void Terminate()
         {

@@ -56,6 +56,11 @@ namespace AcCommandTest
         }
 
         /// <summary>
+        /// 交叉点（和其他格线相交）个数
+        /// </summary>
+        public int CrossPointCount { get; set; }
+
+        /// <summary>
         /// 是否接受一个线段，即该线段是否可以归到这条格线中
         /// 这里默认线段已经是正交的，应在调用之前做好判断
         /// </summary>
@@ -164,28 +169,56 @@ namespace AcCommandTest
         /// <summary>
         /// 在某个点上有无线段
         /// </summary>
-        /// <param name="xory"></param>
+        /// <param name="pt"></param>
+        /// <param name="tolerance"></param>
         /// <returns></returns>
-        public bool HasSegmentOn(double xory)
+        public bool HasSegmentOn(Point2d pt, double tolerance)
         {
+            if (_direction == AcTableLineDirection.H && Math.Abs(_xory - pt.Y) > tolerance ||
+                _direction == AcTableLineDirection.V && Math.Abs(_xory - pt.X) > tolerance)
+            {
+                return false;
+            }
             foreach (AcLineSegment seg in _segments)
             {
                 if (_direction == AcTableLineDirection.H)
                 {
-                    if (seg.Start.X <= xory && seg.End.X >= xory)
+                    if (seg.Start.X <= pt.X && seg.End.X >= pt.X ||
+                        Math.Abs(seg.Start.X - pt.X) < tolerance ||
+                        Math.Abs(seg.End.X - pt.X) < tolerance)
                     {
                         return true;
                     }
                 }
                 else
                 {
-                    if (seg.Start.Y >= xory && seg.End.Y <= xory)
+                    if (seg.Start.Y >= pt.Y && seg.End.Y <= pt.Y ||
+                        Math.Abs(seg.Start.Y - pt.Y) < tolerance ||
+                        Math.Abs(seg.End.Y - pt.Y) < tolerance)
                     {
                         return true;
                     }
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// 在某个位置上有无线段
+        /// </summary>
+        /// <param name="xory"></param>
+        /// <param name="tolerance"></param>
+        /// <returns></returns>
+        public bool HasSegmentOn(double xory, double tolerance)
+        {
+            if (_direction == AcTableLineDirection.H)
+            {
+                return HasSegmentOn(new Point2d(xory, _xory), tolerance);
+            }
+            else
+            {
+                return HasSegmentOn(new Point2d(_xory, xory), tolerance);
+            }
         }
 
         /// <summary>
@@ -229,6 +262,8 @@ namespace AcCommandTest
             sb.AppendLine("xory: " + XorY.ToString());
             sb.AppendLine("Start: " + string.Format("( {0:f1}, {1:f1} )", Start.X, Start.Y));
             sb.AppendLine("End: " + string.Format("( {0:f1}, {1:f1} )", End.X, End.Y));
+            sb.AppendLine("Length: " + string.Format("{0:f1}", Length));
+            sb.AppendLine("CrossPointCount: " + string.Format("{0:d}", CrossPointCount));
             sb.AppendLine("Segments: ");
             foreach (var seg in _segments)
             {
