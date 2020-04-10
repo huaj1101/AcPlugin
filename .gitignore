@@ -10,3 +10,9 @@
 /AcPluginTest/*.user
 /acCustomUI/obj/Release
 /AcStarter/obj/Release
+/AcCustomUI/McMenu.bak.cuix
+/AcCustomUI/McMenu.mnr
+/AcCustomUI/McMenu - 副本.CUIX
+/acCustomUI/obj/Debug
+/AcStarter/obj/Debug
+/AcPlugin.sln.DotSettings.user
