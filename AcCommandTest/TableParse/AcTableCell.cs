@@ -39,6 +39,9 @@ namespace AcCommandTest
             _specialChars["%%131"] = "φ";
             _specialChars["%%132"] = "φ";
             _specialChars["%%133"] = "φ";
+            _specialChars[""] = "φ"; //这里面不是空格，是一个常用于钢筋直径的特殊字符，EE8080
+            _specialChars[""] = "φ"; //这里面不是空格，是一个常用于钢筋直径的特殊字符，EE8081
+            _specialChars[""] = "φ"; //这里面不是空格，是一个常用于钢筋直径的特殊字符，EE8082
             _specialChars["m3/"] = "m³";
             _specialChars["m2/"] = "㎡";
             _commonSpecialCharRegex = new Regex(@"%%\d{3}");
@@ -47,7 +50,9 @@ namespace AcCommandTest
             _specialStrs["m) 3"] = "m³)";
             _specialStrs["m 3"] = "m³";
             _specialStrs["m³ )"] = "m³)";
+            _specialStrs["m³  )"] = "m³)";
             _specialStrs["㎡ )"] = "㎡)";
+            _specialStrs["㎡  )"] = "㎡)";
             _specialStrs["' ' '"] = "°'\"";
             _specialStrs["' \""] = "°'\"";
         }
@@ -72,7 +77,7 @@ namespace AcCommandTest
                 InnerCell.Value = ProcessSpecialText(Texts[0].Value);
                 return;
             }
-            Texts.Sort((text1, text2) => (int)((text1.Position.X - text2.Position.X + 2 * (text2.Position.Y - text1.Position.Y)) * 100));
+            Texts.Sort((text1, text2) => Math.Sign((text1.Position.X - text2.Position.X + 2 * (text2.Position.Y - text1.Position.Y))));
             List<string> parts = new List<string>();
             foreach (AcText text in Texts)
             {
@@ -158,6 +163,10 @@ namespace AcCommandTest
                 s = s.Replace(key, _specialChars[key]);
             }
             s = _commonSpecialCharRegex.Replace(s, "");
+            foreach (string key in _specialStrs.Keys)
+            {
+                s = s.Replace(key, _specialStrs[key]);
+            }
             return s.Trim();
         }
     }

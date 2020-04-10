@@ -21,12 +21,12 @@ namespace AcCommandTest
         }
 
         /// <summary>
-        /// 比较浮点数是否相等（Round后比较）
+        /// 比较浮点数（Round后比较）
         /// </summary>
         /// <param name="d1"></param>
         /// <param name="d2"></param>
         /// <returns>-1, 0, 1</returns>
-        public static int Compare(double d1, double d2, int decimals = 1)
+        public static int Compare(double d1, double d2, int decimals = 3)
         {
             return Math.Sign(Math.Round(d1 - d2, decimals));
         }
