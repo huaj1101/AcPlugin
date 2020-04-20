@@ -105,7 +105,6 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             McLoad(false);
         }
 
-        [CommandMethod("McLoad")]
         public void McLoad(bool initPlugin)
         {
             try
