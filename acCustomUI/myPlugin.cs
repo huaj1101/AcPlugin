@@ -46,7 +46,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             // as well as some of the existing AutoCAD managed apps.
 
             // Initialize your plug-in application here
-            ui.McLoad();
+            ui.McLoad(true);
         }
 
         void IExtensionApplication.Terminate()

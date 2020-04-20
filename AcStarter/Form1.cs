@@ -16,34 +16,67 @@ namespace AcStarter
 {
     public partial class Form1 : Form
     {
+        private const string REG_VERSION_SUB_KEY_HKLM = @"R23.1\ACAD-3001";
+        private const string REG_VERSION_SUB_KEY_ZHCN = @"R23.1\ACAD-3001:804";
+        private const string PROFILE_MC2020 = "MCSL2020";
+
+        private static bool zh_cn_lang_installed = false;
+        private static string cadInstallDir = null;
+        private static string acadExe = null;
+        private static string exeArgs = null;
         public Form1()
         {
             InitializeComponent();
         }
 
-        private const string PROFILE_MC2020 = "MC2020";
+        /// <summary>
+        /// 本处理应由产品安装包来处理
+        /// </summary>
+        private static void TryRegistMyNetloadDll__()
+        {
+            var mydir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var myDll = Path.Combine(mydir, "AcCustomUI.dll");
+            
+            var dpath = Path.Combine(cadInstallDir, @"Plugins\mcsl2020\AcCustomUI.dll");
+            if (!File.Exists(dpath)) //复制 dll 到 AutoCAD 的 Plugins 目录下，则AutoCAD 启动后加载 dll 不再有确认提示
+            {
+                var dDir = Path.Combine(cadInstallDir, @"Plugins\mcsl2020");
+                if (!Directory.Exists(dDir))
+                {
+                    Directory.CreateDirectory(dDir);
+                }
+                File.Copy(myDll, dpath);
+            }
+
+            RegistryKey rootKey = Registry.CurrentUser;
+            RegistryKey apps = rootKey.OpenSubKey(@"Software\Autodesk\AutoCAD\"+ REG_VERSION_SUB_KEY_ZHCN +@"\Applications", true);
+            if (apps == null) return;
+            RegistryKey MyPrograrm = apps.CreateSubKey(PROFILE_MC2020);
+            MyPrograrm.SetValue("DESCRIPTION", "MCSL2020 应用", RegistryValueKind.String); //描述
+            MyPrograrm.SetValue("LOADCTRLS", 2, RegistryValueKind.DWord); //cad启动后自动加载
+            MyPrograrm.SetValue("LOADER", dpath, RegistryValueKind.String); //dll的全路径
+            MyPrograrm.SetValue("MANAGED", 1, RegistryValueKind.DWord);
+        }
+
 
         private static void TryRegistMyNetloadDll()
         {
-            String mydir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            String dpath = Path.Combine(mydir, "AcCustomUI.dll");
-
+            var mydir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var dpath = Path.Combine(mydir, "AcCustomUI.dll");
             RegistryKey rootKey = Registry.CurrentUser;
-            RegistryKey apps = rootKey.OpenSubKey(@"Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Applications", true);
-            if (apps != null)
-            {
-                RegistryKey MyPrograrm = apps.CreateSubKey(PROFILE_MC2020);
-                MyPrograrm.SetValue("DESCRIPTION", "MC2020 应用", RegistryValueKind.String); //描述
-                MyPrograrm.SetValue("LOADCTRLS", 2, RegistryValueKind.DWord); //cad启动后自动加载
-                MyPrograrm.SetValue("LOADER", dpath, RegistryValueKind.String); //dll的全路径
-                MyPrograrm.SetValue("MANAGED", 1, RegistryValueKind.DWord);
-            }
+            RegistryKey apps = rootKey.OpenSubKey(@"Software\Autodesk\AutoCAD\" + REG_VERSION_SUB_KEY_ZHCN + @"\Applications", true);
+            if (apps == null) return;
+            RegistryKey MyPrograrm = apps.CreateSubKey(PROFILE_MC2020);
+            MyPrograrm.SetValue("DESCRIPTION", "MCSL2020 应用", RegistryValueKind.String); //描述
+            MyPrograrm.SetValue("LOADCTRLS", 2, RegistryValueKind.DWord); //cad启动后自动加载
+            MyPrograrm.SetValue("LOADER", dpath, RegistryValueKind.String); //dll的全路径
+            MyPrograrm.SetValue("MANAGED", 1, RegistryValueKind.DWord);
         }
 
         private static bool GetProfileImported()
         {
             RegistryKey key = Registry.CurrentUser;
-            RegistryKey profilesKey = key.OpenSubKey(@"Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Profiles", false);
+            RegistryKey profilesKey = key.OpenSubKey(@"Software\Autodesk\AutoCAD\"+ REG_VERSION_SUB_KEY_ZHCN +@"\Profiles", false);
             Object val = profilesKey?.GetValue("");
             if (val != null && PROFILE_MC2020.Equals(val.ToString(), StringComparison.CurrentCultureIgnoreCase))
             {
@@ -55,15 +88,25 @@ namespace AcStarter
             }
         }
 
-        private static bool GetAcadLocationFromRegistry(out string acadExe, out string exeArgs)
+        private static bool GetAcadLocationFromRegistry()
         {
-            RegistryKey key = Registry.CurrentUser;
-            RegistryKey profilesKey = key.OpenSubKey(@"Software\Autodesk\AutoCAD\R19.1\ACAD-D001\Install", false);
-            String mydir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var installDir = profilesKey?.GetValue("INSTALLDIR", null);
-            if (installDir != null)
+            RegistryKey rootKeyHKCU = Registry.CurrentUser;
+            RegistryKey key_zhcn = rootKeyHKCU.OpenSubKey(@"Software\Autodesk\AutoCAD\" + REG_VERSION_SUB_KEY_ZHCN, false);
+            zh_cn_lang_installed = key_zhcn != null;
+            if (!zh_cn_lang_installed)
             {
-                acadExe = Path.Combine(installDir.ToString(), "acad.exe");
+                return false;
+            }
+
+            
+            RegistryKey key = Registry.LocalMachine;
+            RegistryKey profilesKey = key.OpenSubKey(@"Software\Autodesk\AutoCAD\"+ REG_VERSION_SUB_KEY_HKLM + @"\Install", false);
+            var mydir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var cadInstallDirObj = profilesKey?.GetValue("INSTALLDIR", null);
+            if (cadInstallDirObj != null)
+            {
+                cadInstallDir = cadInstallDirObj.ToString();
+                acadExe = Path.Combine(cadInstallDir, "acad.exe");
                 exeArgs = @"/nologo ";
                 if (GetProfileImported())
                 {
@@ -71,38 +114,38 @@ namespace AcStarter
                 }
                 else
                 {
-                    String profileRegFile = Path.Combine(mydir, PROFILE_MC2020 + ".arg");
+                    var profileRegFile = Path.Combine(mydir, PROFILE_MC2020 + ".arg");
 
                     exeArgs += "/p \"" + profileRegFile + "\"";
                 }
 
-                string supdir = Path.Combine(installDir.ToString(), "support");
+                var supdir = Path.Combine(cadInstallDir.ToString(), "support");
                 exeArgs += " /s \"" + mydir + ";" + supdir + "\"";
 
                 return true;
             }
             else
             {
-                acadExe = null;
-                exeArgs = null;
                 return false;
             }
         }
 
         private void Form1_Shown(object sender, EventArgs e)
         {
-            //找到 AutoCAD 2014 安装位置
-            string acadExe =null;
-            string exeArgs = null;
-            
-            if (GetAcadLocationFromRegistry(out acadExe, out exeArgs))
+            //找到 AutoCAD 2020 安装位置
+            if (acadExe!=null)
             {
                 Task task1 = new Task(() => StartAutoCAD(acadExe, exeArgs));
                 task1.Start();
             }
+            else if(!zh_cn_lang_installed)
+            {
+                MessageBox.Show("未安装 AutoCAD 2020 中文语言包。");
+                Application.Exit();
+            }
             else
             {
-                MessageBox.Show("AutoCAD 2014 未安装。");
+                MessageBox.Show("AutoCAD 2020 未安装。");
                 Application.Exit();
             }
         }
@@ -123,6 +166,7 @@ namespace AcStarter
         private void Form1_Load(object sender, EventArgs e)
         {
             label1.Parent = pictureBox1;
+            GetAcadLocationFromRegistry();
             TryRegistMyNetloadDll();
         }
     }

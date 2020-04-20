@@ -33,6 +33,7 @@ using RibbonPanelSource = Autodesk.Windows.RibbonPanelSource;
 using UserControl = System.Windows.Controls.UserControl;
 using System.Reflection;
 using System.Windows.Input;
+using Autodesk.AutoCAD.BoundaryRepresentation;
 using Autodesk.AutoCAD.Internal.Reactors;
 using Autodesk.AutoCAD.Interop.Common;
 using Autodesk.AutoCAD.Windows.ToolPalette;
@@ -55,6 +56,11 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
 
     public class UiManager
     {
+        private const string REG_VERSION_SUB_KEY_HKLM = @"R23.1\ACAD-3001";
+        private const string REG_VERSION_SUB_KEY_ZHCN = @"R23.1\ACAD-3001:804";
+        private const string PROFILE_MC2020 = "MCSL2020";
+        private const string MG_NAME_MCMENU = "MCSL2020MENU";
+        private const string McWorkspaceName = "AutoCAD 经典";
 
         private static AcadApplication AcadApp = Application.AcadApplication as AcadApplication;
 
@@ -66,6 +72,18 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
         }
 
+
+        private static bool get_is_mcsl2020_environment()
+        {
+            foreach (string arg in Environment.GetCommandLineArgs())
+            {
+                if (arg.Contains(PROFILE_MC2020.ToLower()) || arg.Contains(PROFILE_MC2020.ToUpper()))
+                    return true;
+            }
+
+            return false;
+        }
+
         [CommandMethod("McUiSwitch")]
         public void McUiSwitch()
         {
@@ -75,17 +93,36 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
             else
             {
-                McLoad();
+                McLoad(false);
             }
         }
 
         private static bool mcUiLoaded = false;
+
         [CommandMethod("McLoad")]
         public void McLoad()
         {
+            McLoad(false);
+        }
+
+        [CommandMethod("McLoad")]
+        public void McLoad(bool initPlugin)
+        {
             try
             {
-                McWriteMessage("MyPlugin 插件 UI 加载开始\n");
+                McWriteMessage("MyPlugin 插件 UI 加载处理开始\n");
+
+                if (initPlugin)
+                {
+                    IAcadPreferences acadPreferences = (IAcadPreferences) Application.Preferences;
+
+                    if (!PROFILE_MC2020.Equals(acadPreferences.Profiles.ActiveProfile,
+                        StringComparison.CurrentCultureIgnoreCase)) //当前配置不是 MCSL2020 的话
+                    {
+                        McWriteMessage("当前配置不是 MCSL2020，说明不是启动算量软件，不对界面做处理");
+                        return;
+                    }
+                }
 
                 Application.UserConfigurationManager.CurrentProfileChanged += new ProfileEventHandler((sender, e) =>
                 {
@@ -101,7 +138,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                 McWriteMessage("0.1  McSetActiveProfile()\n");
 
                 //Cui
-                //使用starter 时不需要执行？？
+                //使用starter 时不需要执行
                 //McCustomCui();
                 //McWriteMessage("0.2  McCustomCui()\n");
 
@@ -140,8 +177,8 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
                 McWriteMessage("8  MyEvent.AddSelectChangeEvent()\n");
 
                 //隐藏AutoCAD自带 toolbar
-                McHideAllToolbar();
-                McWriteMessage("9.1  McHideAllToolbar()\n");
+                //McHideAllToolbar();
+                //McWriteMessage("9.1  McHideAllToolbar()\n");
 
                 //添加自定义toolbar
                 McCustomToolbar();
@@ -430,11 +467,14 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             myPaletteSetLeft.MinimumSize = new System.Drawing.Size(130,800) ;
             dockBarLeft = new MyDockBarLeft();
             myPaletteSetLeft.Add("2", dockBarLeft);
-            myPaletteSetLeft.Dock = DockSides.Left;
+            
+            myPaletteSetLeft.Style = 0;
             myPaletteSetLeft.TitleBarLocation = PaletteSetTitleBarLocation.Left;
             myPaletteSetLeft.Visible = true;
 
             // Visible 设置之后再设置尺寸和停靠
+            myPaletteSetLeft.Dock = DockSides.Left;
+            myPaletteSetLeft.DockEnabled = DockSides.Left;
         }
 
         [CommandMethod("McPaletteSetLeftUn")]
@@ -590,8 +630,6 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             MyTopWindow.showModeless();
         }
 
-        private const string MG_NAME_MCMENU = "MCMENU";
-
         [CommandMethod("McCustomToolbar")]
         public void McCustomToolbar()
         {
@@ -610,6 +648,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             String dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             
             AcadToolbar atbCustom = atbs.Add(mcToolbarName);
+            
             //示例atbi = atbCustom.AddToolbarButton(0, "工具栏名称", "帮助", "命令 ", false);
             //命令后，紧跟一空格，否则处于等待状态
             AcadToolbarItem atbi = atbCustom.AddToolbarButton(0, "对象信息窗口", "Test 显示置顶非模态窗口", "MyTopWindowShow ", false);
@@ -1012,30 +1051,37 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         }
 
         private static string cadWorkspaceName = null;
+        
        /// <summary>
        /// 切换到 "AutoCAD 经典" 工作空间
        /// </summary>
        [CommandMethod("McWorkspace")]
        public void McWorkspace()
        {
-           string curCuiFileName = Application.GetSystemVariable("MENUNAME").ToString() + ".cuix";
-           CustomizationSection curCui = new CustomizationSection(curCuiFileName);
+           //string curCuiFileName = Application.GetSystemVariable("MENUNAME").ToString() + ".cuix";
+           //CustomizationSection curCui = new CustomizationSection(curCuiFileName);
            string wsCurrentName = (string)Application.GetSystemVariable("WSCURRENT");
 
-           foreach (Workspace cuiWorkspace in curCui.Workspaces)
+           if (!wsCurrentName.Equals(McWorkspaceName))
            {
-               //"WS_Anno2DDraft"  "草图与注释"
-               //"WS_3DModeling   "三维建模"
-               //"WS_SM_0001"     "三维基础"
-               //"WS_AcadClassic" "AutoCAD 经典"
-               if ("WS_AcadClassic".Equals(cuiWorkspace.ElementID) && !cuiWorkspace.Name.Equals(wsCurrentName))
-               {
-                   Application.SetCurrentWorkspace(cuiWorkspace.Name);
-                   cadWorkspaceName = wsCurrentName;
-                   return;
-               }
-           }
-       }
+               cadWorkspaceName = wsCurrentName;
+                Application.SetCurrentWorkspace(McWorkspaceName);
+            }
+
+           //foreach (Workspace cuiWorkspace in curCui.Workspaces)
+           //{
+           //    //"WS_Anno2DDraft"  "草图与注释"
+           //    //"WS_3DModeling   "三维建模"
+           //    //"WS_SM_0001"     "三维基础"
+           //    //"WS_AcadClassic" "AutoCAD 经典"
+           //    if ("WS_AcadClassic".Equals(cuiWorkspace.ElementID) && !cuiWorkspace.Name.Equals(wsCurrentName))
+           //    {
+           //        Application.SetCurrentWorkspace(cuiWorkspace.Name);
+           //        cadWorkspaceName = wsCurrentName;
+           //        return;
+           //    }
+           //}
+        }
 
         /// <summary>
         /// 切换到原工作空间
@@ -1049,12 +1095,16 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
         }
 
-        private const string PROFILE_MC2020 = "MC2020";
-
         private static void resetProfileInRegistry()
         {
             RegistryKey key = Registry.CurrentUser;
-            RegistryKey profilesKey = key.OpenSubKey(@"Software\Autodesk\AutoCAD\R19.1\ACAD-D001:804\Profiles", true);
+            RegistryKey profilesKey = key.OpenSubKey(@"Software\Autodesk\AutoCAD\"+ REG_VERSION_SUB_KEY_ZHCN + @"\Profiles", true);
+            if (profilesKey == null)
+            {
+                McWriteMessage("未安装 AutoCAD 2020 或未安装 AutoCAD2020 简体中文语言包，无法更新注册表默认配置文件设置");
+                return;
+            }
+
             Object val = profilesKey.GetValue("");
             if (val != null && PROFILE_MC2020.Equals(val.ToString(), StringComparison.CurrentCultureIgnoreCase))
             {
@@ -1176,6 +1226,7 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
 
         [CommandMethod("McCustomMainMenuClear")]
         public void McCustomMainMenuClear()
+
         {
             foreach (AcadPopupMenu acadPopupMenu in AcadApp.MenuGroups.Item(0).Menus)
             {
@@ -1186,11 +1237,14 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
         }
 
+        /// <summary>
+        /// 代码生成 cuix 菜单配置
+        /// </summary>
         [CommandMethod("SaveMenuToCuiX")]
         public void SaveMenuToCuiX()
         {
             ////自定义的组名
-            string strMyGroupName = "McGroup";
+            string strMyGroupName = "McslGroup";
             String dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             //保存的CUI文件名（从CAD2010开始，后缀改为了cuix）
             string strCuiFileName = dir + "\\" + "" + ".cuix";

@@ -4,8 +4,8 @@
     <ReferencePath>E:\work\autocad2014\CustomUI\AcPlugin\AcCustomUI\..\aclib\</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartProgram>D:\Program Files\Autodesk\AutoCAD 2014\acad.exe</StartProgram>
+    <StartProgram>C:\Program Files\Autodesk\AutoCAD 2020\acad.exe</StartProgram>
     <StartAction>Program</StartAction>
-    <StartArguments>/nologo /p "MC2020"</StartArguments>
+    <StartArguments>/nologo /p "MCSL2020"</StartArguments>
   </PropertyGroup>
 </Project>
