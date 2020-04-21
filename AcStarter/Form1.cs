@@ -107,7 +107,7 @@ namespace AcStarter
             {
                 cadInstallDir = cadInstallDirObj.ToString();
                 acadExe = Path.Combine(cadInstallDir, "acad.exe");
-                exeArgs = @"/nologo ";
+                exeArgs = "/nologo /product ACAD /language \"zh-CN\" ";
                 if (GetProfileImported())
                 {
                     exeArgs += "/p \"" + PROFILE_MC2020 + "\"";

@@ -40,8 +40,10 @@ using Autodesk.AutoCAD.Windows.ToolPalette;
 using Autodesk.Internal.InfoCenter;
 using Autodesk.Private.InfoCenter;
 using Microsoft.Win32;
+using RegistryKey = Microsoft.Win32.RegistryKey;
 using Visibility = System.Windows.Visibility;
 using Window = Autodesk.AutoCAD.Windows.Window;
+using Registry = Microsoft.Win32.Registry;
 
 // This line is not mandatory, but improves loading performances
 [assembly: CommandClass(typeof(AutoCAD_CSharp_plug_in_acCustomUI.UiManager))]
@@ -97,6 +99,11 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
         }
 
+        private static bool Language_is_zh_cn()
+        {
+            return Autodesk.AutoCAD.Runtime.SystemObjects.DynamicLinker.ProductLcid == 0x804;
+        }
+
         private static bool mcUiLoaded = false;
 
         [CommandMethod("McLoad")]
@@ -109,6 +116,12 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
         {
             try
             {
+                if (!Language_is_zh_cn())
+                {
+                    McWriteMessage("\nNot using Simplify Chinese Language Pack, The plugin can not start.\n");
+                    return;
+                }
+
                 McWriteMessage("MyPlugin 插件 UI 加载处理开始\n");
 
                 if (initPlugin)
@@ -215,8 +228,10 @@ namespace AutoCAD_CSharp_plug_in_acCustomUI
             }
             finally
             {
-                resetProfileInRegistry(); //注册表中记录的值重置为默认配置文件，AutoCAD 独立启动时仍可使用默认配置文件
-                McWriteMessage("注册表选定配置信息已重置\n");
+                if (Language_is_zh_cn()) { 
+                    resetProfileInRegistry(); //注册表中记录的值重置为默认配置文件，AutoCAD 独立启动时仍可使用默认配置文件
+                    McWriteMessage("注册表选定配置信息已重置\n");
+                }
             }
         }
 

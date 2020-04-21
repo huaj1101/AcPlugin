@@ -95,12 +95,12 @@
       <HintPath>..\aclib\AdWindows.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Autodesk.AutoCAD.Interop.Common, Version=19.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+	<Reference Include="Autodesk.AutoCAD.Interop.Common">
+      <HintPath>..\aclib\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Autodesk.AutoCAD.Interop, Version=19.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+	<Reference Include="Autodesk.AutoCAD.Interop">
+      <HintPath>..\aclib\Autodesk.AutoCAD.Interop.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <!--ACA References Begin-->
