@@ -7,10 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcPluginTest", "AcPluginTes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcCommandTest", "AcCommandTest\AcCommandTest.csproj", "{151BA15C-5E60-4A29-AD5F-A3B8CD809B65}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcCustomUI", "AcCustomUI\AcCustomUI.csproj", "{6247A9AE-9E2E-43A1-B7D8-3845FFCCF49C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcStarter", "AcStarter\AcStarter.csproj", "{3D092A8C-7675-44C0-ADCE-95F4F88D29A3}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,14 +21,6 @@ Global
 		{151BA15C-5E60-4A29-AD5F-A3B8CD809B65}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{151BA15C-5E60-4A29-AD5F-A3B8CD809B65}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{151BA15C-5E60-4A29-AD5F-A3B8CD809B65}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6247A9AE-9E2E-43A1-B7D8-3845FFCCF49C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6247A9AE-9E2E-43A1-B7D8-3845FFCCF49C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6247A9AE-9E2E-43A1-B7D8-3845FFCCF49C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6247A9AE-9E2E-43A1-B7D8-3845FFCCF49C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3D092A8C-7675-44C0-ADCE-95F4F88D29A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3D092A8C-7675-44C0-ADCE-95F4F88D29A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3D092A8C-7675-44C0-ADCE-95F4F88D29A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3D092A8C-7675-44C0-ADCE-95F4F88D29A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

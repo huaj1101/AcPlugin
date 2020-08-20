@@ -2,6 +2,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -26,15 +27,23 @@ namespace AcCommandTest
             }
         }
 
+        private static string AutoCadDirectory
+        {
+            get
+            {
+                string acFile = Process.GetCurrentProcess().MainModule.FileName;
+                return Path.GetDirectoryName(acFile);
+            }
+        }
+
         public static void PutFontFiles()
         {
             string mcFontDir = Path.Combine(AssemblyDirectory, "Fonts");
-            //TODO: 查找AutoCad安装目录
-            string acFontDir = @"C:\Program Files\Autodesk\AutoCAD 2014\Fonts\";
+            string acFontDir = Path.Combine(AutoCadDirectory, "Fonts");
             foreach (string file in Directory.EnumerateFiles(mcFontDir, "*.shx"))
             {
                 string pure_file_name = Path.GetFileName(file);
-                string dest_file = acFontDir + pure_file_name;
+                string dest_file = Path.Combine(acFontDir, pure_file_name);
                 try
                 {
                     if (!File.Exists(dest_file))
